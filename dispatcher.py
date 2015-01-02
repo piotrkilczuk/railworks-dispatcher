@@ -10,8 +10,9 @@ from xml.etree import ElementTree
 
 
 IGNORED_SCENARIO_CLASSES = (
-    'eTemplateScenarioClass',
     'eFreeRoamScenarioClass',
+    'eTemplateScenarioClass',
+    'eTutorialScenarioClass',
 )
 TEMPLATE = """
 <html>
@@ -41,6 +42,13 @@ TEMPLATE = """
 """
 
 
+def int_to_time(int_time):
+    HOUR = 3600
+    hours = int(int_time / HOUR)
+    minutes = (int_time % HOUR) / 60
+    return hours, minutes
+
+
 def launch_html(path):
     try:
         os.startfile(path)
@@ -66,15 +74,25 @@ def main():
 
         xml = ElementTree.parse(todays_work_order)
 
+        scenario_class = xml.find('./ScenarioClass').text
+        if scenario_class in IGNORED_SCENARIO_CLASSES:
+            continue
+
         scenario_name = xml.find('./DisplayName/Localisation-cUserLocalisedString/English').text
         scenario_description = xml.find('./Description/Localisation-cUserLocalisedString/English').text
         scenario_briefing = xml.find('./Briefing/Localisation-cUserLocalisedString/English').text
         scenario_start_location = xml.find('./StartLocation/Localisation-cUserLocalisedString/English').text
-        scenario_class = xml.find('./ScenarioClass').text
-        date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+        scenario_start_time = xml.find('./StartTime').text
+        scenario_start_day = xml.find('./StartDD').text
+        scenario_start_month = xml.find('./StartMM').text
+        scenario_start_year = xml.find('./StartYYYY').text
 
-        if scenario_class in IGNORED_SCENARIO_CLASSES:
-            continue
+        time = int_to_time(int(scenario_start_time))
+        time_adjust = random.randrange(15, 45)
+        date = datetime.datetime(
+            int(scenario_start_year), int(scenario_start_month), int(scenario_start_day),
+            *time
+        ) - datetime.timedelta(minutes=time_adjust)
 
         # @TODO: get route name from respective parent folder
         # @TODO: if not present, assume we don't own this route
