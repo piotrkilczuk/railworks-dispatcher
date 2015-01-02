@@ -41,6 +41,13 @@ TEMPLATE = """
 """
 
 
+def launch_html(path):
+    try:
+        os.startfile(path)
+    except AttributeError:
+        os.system('xdg-open \'%s\'' % path)
+
+
 def render_html(context):
     return string.Template(TEMPLATE).safe_substitute(**context)
 
@@ -85,8 +92,7 @@ def main():
 
     html_path = os.path.join(railworks_folder, 'WorkOrder.html')
     open(html_path, 'w').write(html.encode('utf8'))
-
-    # @TODO: detect system and run created WorkOrder.html
+    launch_html(html_path)
 
 
 if __name__ == '__main__':
