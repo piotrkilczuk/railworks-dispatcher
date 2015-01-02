@@ -1,7 +1,7 @@
 Railworks Dispatcher
 ====================
 
-Creates a work order by drawing a random scenario from your Railworks folder.
+Creates a work order by choosing a random scenario from your Railworks folder.
 
 Setup
 -----

@@ -45,7 +45,7 @@ def render_html(context):
     return string.Template(TEMPLATE).safe_substitute(**context)
 
 
-def draw():
+def main():
     found = False  # @TODO: switch to while not Found to skip unavailable routes
 
     railworks_folder = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
@@ -88,4 +88,4 @@ def draw():
 
 
 if __name__ == '__main__':
-    draw()
+    main()
