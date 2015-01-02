@@ -85,6 +85,7 @@ def main():
     html_path = os.path.join(railworks_folder, 'WorkOrder.html')
     open(html_path, 'w').write(html.encode('utf8'))
 
+    # @TODO: detect system and run created WorkOrder.html
 
 
 if __name__ == '__main__':
