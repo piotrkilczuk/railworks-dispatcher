@@ -46,14 +46,15 @@ def render_html(context):
 
 
 def main():
-    found = False  # @TODO: switch to while not Found to skip unavailable routes
-
     railworks_folder = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
+    dispatcher_folder = os.path.join(railworks_folder, 'Dispatcher')
+    work_orders_folder = os.path.join(dispatcher_folder, 'WorkOrders')
+    scenario_folders = os.path.join(railworks_folder,
+                                    'Content', 'Routes', '*', 'Scenarios', '*', 'ScenarioProperties.xml')
 
-    scenario_folders = os.path.join(railworks_folder, 'Content/Routes/*/Scenarios/*/ScenarioProperties.xml')
     all_scenarios = glob.glob(scenario_folders)
 
-    while not found:
+    while True:
         todays_work_order = random.choice(all_scenarios)
 
         xml = ElementTree.parse(todays_work_order)
@@ -71,16 +72,16 @@ def main():
         # @TODO: get route name from respective parent folder
         # @TODO: if not present, assume we don't own this route
 
-        html = render_html({
-            'scenario_name': scenario_name,
-            'scenario_description': scenario_description,
-            'scenario_briefing': scenario_briefing,
-            'scenario_start_location': scenario_start_location or 'Depot',
-            'scenario_class': scenario_class,
-            'date': date
-        })
+        break
 
-        found = True
+    html = render_html({
+        'scenario_name': scenario_name,
+        'scenario_description': scenario_description,
+        'scenario_briefing': scenario_briefing,
+        'scenario_start_location': scenario_start_location or 'Depot',
+        'scenario_class': scenario_class,
+        'date': date
+    })
 
     html_path = os.path.join(railworks_folder, 'WorkOrder.html')
     open(html_path, 'w').write(html.encode('utf8'))
