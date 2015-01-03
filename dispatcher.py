@@ -72,6 +72,13 @@ def main():
     while True:
         todays_work_order = random.choice(all_scenarios)
 
+        # only allow scenarios from existing unpacked routes
+        scenario_folder_suffix = os.path.join(*todays_work_order.split(os.sep)[-3:])
+        route_folder = todays_work_order.replace(scenario_folder_suffix, '')
+        route_description = os.path.join(route_folder, 'RouteProperties.xml')
+        if not os.path.exists(route_description):
+            continue
+
         xml = ElementTree.parse(todays_work_order)
 
         scenario_class = xml.find('./ScenarioClass').text
@@ -93,9 +100,6 @@ def main():
             int(scenario_start_year), int(scenario_start_month), int(scenario_start_day),
             *time
         ) - datetime.timedelta(minutes=time_adjust)
-
-        # @TODO: get route name from respective parent folder
-        # @TODO: if not present, assume we don't own this route
 
         break
 

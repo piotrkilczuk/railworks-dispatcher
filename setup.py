@@ -10,7 +10,7 @@ setup(
     author='Piotr Kilczuk',
     author_email='centralny@centralny.info',
 
-    version='0.9.0',
+    version='0.4.9',
 
     entry_points={
         'console_scripts': ['dispatcher=dispatcher:main'],
