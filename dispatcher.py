@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import datetime
+import getpass
 import glob
 import os
 import random
@@ -38,6 +39,15 @@ TEMPLATE = """<!DOCTYPE html>
         </article>
     </body>
 </html>"""
+
+
+def humanize_username(username):
+    SPLITTERS = '.-'
+    IGNORED = '0123456789'  # @TODO: remove funny chars from usernames
+    for splitter in SPLITTERS.split():
+        username = ' '.join(username.split(splitter))
+    username = username.capitalize()
+    return username
 
 
 def ensure_folder(path):
@@ -122,6 +132,7 @@ def main():
         'scenario_briefing': scenario_briefing,
         'scenario_start_location': scenario_start_location or 'Depot',
         'scenario_class': scenario_class,
+        'username': humanize_username(getpass.getuser()),
     })
 
     # @TODO: bump numbers - 0001.html, 0002.html etc.
