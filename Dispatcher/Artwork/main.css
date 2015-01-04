@@ -1,6 +1,60 @@
-body {
-    font-family: monospace;
-    margin: 0 auto;
-    padding-top: 2cm;
-    width: 15cm;
+@font-face {
+    font-family: 'Dots';
+    src: url('dotmatri-webfont.eot');
+    src: url('dotmatri-webfont.eot?#iefix') format('embedded-opentype'),
+         url('dotmatri-webfont.woff2') format('woff2'),
+         url('dotmatri-webfont.woff') format('woff'),
+         url('dotmatri-webfont.ttf') format('truetype'),
+         url('dotmatri-webfont.svg#dot_matrixregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'DotsBold';
+    src: url('dotmbold-webfont.eot');
+    src: url('dotmbold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('dotmbold-webfont.woff2') format('woff2'),
+         url('dotmbold-webfont.woff') format('woff'),
+         url('dotmbold-webfont.ttf') format('truetype'),
+         url('dotmbold-webfont.svg#dot_matrixbold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+article {
+    border: dotted 1px #000;
+    font-family: Dots, monospace;
+    font-size: 20px;
+    line-height: 1.2em;
+    margin: 2cm auto;
+    padding: 0.5cm;
+    width: 14cm;
+}
+
+img {
+    float: right;
+    max-height: 1.5cm;
+    max-width: 10cm;
+}
+
+h1 {
+    border: dotted 1px #000;
+    border-width: 1px 0;
+    font-size: 30px;
+    font-weight: normal;
+    line-height: 1.2em;
+    margin: 0.5cm 0 0.25cm;
+    padding: 0.25cm 0;
+}
+
+.with-margin {
+    margin: 0.25cm 0;
+}
+
+.larger {
+    font-size: 20px;
+    font-family: DotsBold, monospace;
 }

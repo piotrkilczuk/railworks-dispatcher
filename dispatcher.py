@@ -24,18 +24,20 @@ TEMPLATE = """<!DOCTYPE html>
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <title>${scenario_name}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="file://${dispatcher_css}">
+        <link rel="stylesheet" href="file://${dispatcher_artwork_folder}/main.css">
     </head>
     <body>
-        <!-- ${scenario_class} -->
-        <h1>${scenario_name}</h1>
-        <h3>${scenario_description}</h3>
-        <p>${scenario_briefing}</p>
-        <hr>
-        <date>Printed ${date} at ${scenario_start_location}</p>
+        <article class="${scenario_class}">
+            <img class="logo" src="file://${dispatcher_artwork_folder}/${logo}" alt="">
+            <div>Driver ${username}</div>
+            <div class="larger">Shift ${shift_number}</div>
+            <h1>${scenario_name}</h1>
+            <div class="larger">${scenario_description}</div>
+            <div class="with-margin">${scenario_briefing}</div>
+            <div class="with-margin">Printed ${date} at ${scenario_start_location}</div>
+        </article>
     </body>
-</html>
-"""
+</html>"""
 
 
 def ensure_folder(path):
@@ -113,7 +115,8 @@ def main():
 
     html = render_html({
         'date': date,
-        'dispatcher_css': os.path.join(dispatcher_data_folder, 'Artwork', 'main.css'),
+        'dispatcher_artwork_folder': os.path.join(dispatcher_data_folder, 'Artwork'),
+        'logo': 'BR.jpg',
         'scenario_name': scenario_name,
         'scenario_description': scenario_description,
         'scenario_briefing': scenario_briefing,
