@@ -14,18 +14,17 @@ IGNORED_SCENARIO_CLASSES = (
     'eTemplateScenarioClass',
     'eTutorialScenarioClass',
 )
-TEMPLATE = """
-<html>
+TEMPLATE = """<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
     <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <title>${scenario_name}</title>
-        <style type="text/css">
-            body {
-                font-family: monospace;
-                margin: 0 auto;
-                padding-top: 2cm;
-                width: 15cm;
-            }
-        </style>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="file://${dispatcher_css}">
     </head>
     <body>
         <!-- ${scenario_class} -->
@@ -35,11 +34,16 @@ TEMPLATE = """
         <hr>
         <date>Printed ${date} at ${scenario_start_location}</p>
     </body>
-    <script type="text/javascript">
-        //window.print()
-    </script>
 </html>
 """
+
+
+def ensure_folder(path):
+    try:
+        os.makedirs(path)
+        return True
+    except OSError:
+        return False
 
 
 def int_to_time(int_time):
@@ -62,10 +66,12 @@ def render_html(context):
 
 def main():
     railworks_folder = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
-    dispatcher_folder = os.path.join(railworks_folder, 'Dispatcher')
-    work_orders_folder = os.path.join(dispatcher_folder, 'WorkOrders')
     scenario_folders = os.path.join(railworks_folder,
                                     'Content', 'Routes', '*', 'Scenarios', '*', 'ScenarioProperties.xml')
+    work_orders_folder = os.path.join(railworks_folder, 'WorkOrders')
+
+    dispatcher_folder = os.path.abspath(os.path.dirname(sys.argv[0]))
+    dispatcher_data_folder = os.path.join(dispatcher_folder, 'Dispatcher')
 
     all_scenarios = glob.glob(scenario_folders)
 
@@ -103,16 +109,21 @@ def main():
 
         break
 
+    ensure_folder(work_orders_folder)
+
     html = render_html({
+        'date': date,
+        'dispatcher_css': os.path.join(dispatcher_data_folder, 'Artwork', 'main.css'),
         'scenario_name': scenario_name,
         'scenario_description': scenario_description,
         'scenario_briefing': scenario_briefing,
         'scenario_start_location': scenario_start_location or 'Depot',
         'scenario_class': scenario_class,
-        'date': date
     })
 
-    html_path = os.path.join(railworks_folder, 'WorkOrder.html')
+    # @TODO: bump numbers - 0001.html, 0002.html etc.
+
+    html_path = os.path.join(work_orders_folder, 'WorkOrder.html')
     open(html_path, 'w').write(html.encode('utf8'))
     launch_html(html_path)
 
