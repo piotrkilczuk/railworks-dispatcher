@@ -58,6 +58,16 @@ def ensure_folder(path):
         return False
 
 
+def get_last_number(work_orders_folder):
+    pattern = os.path.join(work_orders_folder, '????.html')
+    all_htmls = sorted(glob.glob(pattern))
+    if not all_htmls:
+        return 0
+    last_file = os.path.split(all_htmls[-1])[1]
+    last_number = int(last_file.split('.')[0])
+    return last_number
+
+
 def int_to_time(int_time):
     HOUR = 3600
     hours = int(int_time / HOUR)
@@ -121,6 +131,8 @@ def main():
 
         break
 
+    work_order_number = str(get_last_number(work_orders_folder) + 1).zfill(4)
+
     ensure_folder(work_orders_folder)
 
     html = render_html({
@@ -132,12 +144,12 @@ def main():
         'scenario_briefing': scenario_briefing,
         'scenario_start_location': scenario_start_location or 'Depot',
         'scenario_class': scenario_class,
+        'shift_number': work_order_number,
         'username': humanize_username(getpass.getuser()),
     })
 
-    # @TODO: bump numbers - 0001.html, 0002.html etc.
-
-    html_path = os.path.join(work_orders_folder, 'WorkOrder.html')
+    html_name = work_order_number + '.html'
+    html_path = os.path.join(work_orders_folder, html_name)
     open(html_path, 'w').write(html.encode('utf8'))
     launch_html(html_path)
 

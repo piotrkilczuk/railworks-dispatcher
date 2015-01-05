@@ -1,3 +1,8 @@
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
 @font-face {
     font-family: 'Dots';
     src: url('dotmatri-webfont.eot');
@@ -29,8 +34,9 @@ article {
     font-family: Dots, monospace;
     font-size: 20px;
     line-height: 1.2em;
-    margin: 2cm auto;
+    margin: 1.5cm auto 0;
     padding: 0.5cm;
+    page-break-inside: avoid;
     width: 14cm;
 }
 
