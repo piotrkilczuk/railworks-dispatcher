@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cRouteProperties xmlns:d="http://www.kuju.com/TnT/2003/Delta" d:version="1.0" d:id="98852264">
+	<ID>
+		<cGUID>
+			<UUID>
+				<e d:type="sUInt64">5624744972796540019</e>
+				<e d:type="sUInt64">8042996457844563858</e>
+			</UUID>
+			<DevString d:type="cDeltaString">00000001-0000-0000-0000-000000002015</DevString>
+		</cGUID>
+	</ID>
+	<DisplayName>
+		<Localisation-cUserLocalisedString>
+			<English d:type="cDeltaString">Test Route</English>
+			<French d:type="cDeltaString"></French>
+			<Italian d:type="cDeltaString"></Italian>
+			<German d:type="cDeltaString"></German>
+			<Spanish d:type="cDeltaString"></Spanish>
+			<Dutch d:type="cDeltaString"></Dutch>
+			<Polish d:type="cDeltaString"></Polish>
+			<Russian d:type="cDeltaString"></Russian>
+			<Other/>
+			<Key d:type="cDeltaString">197e5cd5-3708-4e17-8656-3847af9fca66</Key>
+		</Localisation-cUserLocalisedString>
+	</DisplayName>
+	<InfrastructureModified d:type="bool">1</InfrastructureModified>
+	<BlueprintID>
+		<iBlueprintLibrary-cAbsoluteBlueprintID>
+			<BlueprintSetID>
+				<iBlueprintLibrary-cBlueprintSetID>
+					<Provider d:type="cDeltaString">Centralniak</Provider>
+					<Product d:type="cDeltaString">TestRoute</Product>
+				</iBlueprintLibrary-cBlueprintSetID>
+			</BlueprintSetID>
+			<BlueprintID d:type="cDeltaString">TemplateRoutes\TestRoute.xml</BlueprintID>
+		</iBlueprintLibrary-cAbsoluteBlueprintID>
+	</BlueprintID>
+	<Skies>
+		<cRouteBlueprint-sSkies>
+			<SpringSkyBlueprint>
+				<iBlueprintLibrary-cAbsoluteBlueprintID>
+					<BlueprintSetID>
+						<iBlueprintLibrary-cBlueprintSetID>
+							<Provider d:type="cDeltaString">Centralniak</Provider>
+							<Product d:type="cDeltaString">TestRoute</Product>
+						</iBlueprintLibrary-cBlueprintSetID>
+					</BlueprintSetID>
+					<BlueprintID d:type="cDeltaString">TimeOfDay\Spring.xml</BlueprintID>
+				</iBlueprintLibrary-cAbsoluteBlueprintID>
+			</SpringSkyBlueprint>
+			<SummerSkyBlueprint>
+				<iBlueprintLibrary-cAbsoluteBlueprintID>
+					<BlueprintSetID>
+						<iBlueprintLibrary-cBlueprintSetID>
+							<Provider d:type="cDeltaString">Centralniak</Provider>
+							<Product d:type="cDeltaString">TestRoute</Product>
+						</iBlueprintLibrary-cBlueprintSetID>
+					</BlueprintSetID>
+					<BlueprintID d:type="cDeltaString">TimeOfDay\Summer.xml</BlueprintID>
+				</iBlueprintLibrary-cAbsoluteBlueprintID>
+			</SummerSkyBlueprint>
+			<AutumnSkyBlueprint>
+				<iBlueprintLibrary-cAbsoluteBlueprintID>
+					<BlueprintSetID>
+						<iBlueprintLibrary-cBlueprintSetID>
+							<Provider d:type="cDeltaString">Centralniak</Provider>
+							<Product d:type="cDeltaString">TestRoute</Product>
+						</iBlueprintLibrary-cBlueprintSetID>
+					</BlueprintSetID>
+					<BlueprintID d:type="cDeltaString">TimeOfDay\Autumn.xml</BlueprintID>
+				</iBlueprintLibrary-cAbsoluteBlueprintID>
+			</AutumnSkyBlueprint>
+			<WinterSkyBlueprint>
+				<iBlueprintLibrary-cAbsoluteBlueprintID>
+					<BlueprintSetID>
+						<iBlueprintLibrary-cBlueprintSetID>
+							<Provider d:type="cDeltaString">Centralniak</Provider>
+							<Product d:type="cDeltaString">TestRoute</Product>
+						</iBlueprintLibrary-cBlueprintSetID>
+					</BlueprintSetID>
+					<BlueprintID d:type="cDeltaString">TimeOfDay\Winter.xml</BlueprintID>
+				</iBlueprintLibrary-cAbsoluteBlueprintID>
+			</WinterSkyBlueprint>
+		</cRouteBlueprint-sSkies>
+	</Skies>
+	<WeatherBlueprint>
+		<iBlueprintLibrary-cAbsoluteBlueprintID>
+			<BlueprintSetID>
+				<iBlueprintLibrary-cBlueprintSetID>
+					<Provider d:type="cDeltaString">Centralniak</Provider>
+					<Product d:type="cDeltaString">TestRoute</Product>
+				</iBlueprintLibrary-cBlueprintSetID>
+			</BlueprintSetID>
+			<BlueprintID d:type="cDeltaString">Weather\Cloudy.xml</BlueprintID>
+		</iBlueprintLibrary-cAbsoluteBlueprintID>
+	</WeatherBlueprint>
+	<TerrainBlueprint>
+		<iBlueprintLibrary-cAbsoluteBlueprintID>
+			<BlueprintSetID>
+				<iBlueprintLibrary-cBlueprintSetID>
+					<Provider d:type="cDeltaString">Centralniak</Provider>
+					<Product d:type="cDeltaString">TestRoute</Product>
+				</iBlueprintLibrary-cBlueprintSetID>
+			</BlueprintSetID>
+			<BlueprintID d:type="cDeltaString">Environment\Terrain.xml</BlueprintID>
+		</iBlueprintLibrary-cAbsoluteBlueprintID>
+	</TerrainBlueprint>
+	<MapBlueprint>
+		<iBlueprintLibrary-cAbsoluteBlueprintID>
+			<BlueprintSetID>
+				<iBlueprintLibrary-cBlueprintSetID>
+					<Provider d:type="cDeltaString">Centralniak</Provider>
+					<Product d:type="cDeltaString">TestRoute</Product>
+				</iBlueprintLibrary-cBlueprintSetID>
+			</BlueprintSetID>
+			<BlueprintID d:type="cDeltaString">System\Map\map.xml</BlueprintID>
+		</iBlueprintLibrary-cAbsoluteBlueprintID>
+	</MapBlueprint>
+	<LockCounter d:type="sUInt32">1</LockCounter>
+	<Locked d:type="bool">0</Locked>
+	<MapProjection>
+		<cMapProjectionOwner d:id="98857984">
+			<MapProjection>
+				<cUTMMapProjection d:id="41217776">
+					<Origin>
+						<sGeoPosition>
+							<Lat d:type="sFloat64" d:alt_encoding="ECC039234AF34940" d:precision="string">51.9007</Lat>
+							<Long d:type="sFloat64" d:alt_encoding="05C24EB16A90EC3F" d:precision="string">0.892629</Long>
+						</sGeoPosition>
+					</Origin>
+					<MapOffset>
+						<sMapCoords>
+							<Easting d:type="sFloat64" d:alt_encoding="00000000C8B201C1" d:precision="string">-144985</Easting>
+							<Northing d:type="sFloat64" d:alt_encoding="0000008046F15541" d:precision="string">5.75209e+006</Northing>
+						</sMapCoords>
+					</MapOffset>
+					<ZoneNumber d:type="sInt32">31</ZoneNumber>
+					<ZoneLetter d:type="cDeltaString">U</ZoneLetter>
+				</cUTMMapProjection>
+			</MapProjection>
+		</cMapProjectionOwner>
+	</MapProjection>
+	<RBlueprintSetPreLoad>
+		<iBlueprintLibrary-cBlueprintSetID d:id="98657344">
+			<Provider d:type="cDeltaString">Centralniak</Provider>
+			<Product d:type="cDeltaString">TestRoute</Product>
+		</iBlueprintLibrary-cBlueprintSetID>
+	</RBlueprintSetPreLoad>
+	<AuthoredLanguage d:type="cDeltaString">en</AuthoredLanguage>
+	<Version d:type="sFloat32" d:alt_encoding="000000000000F03F" d:precision="string">1</Version>
+	<TimeZone d:type="sFloat32" d:alt_encoding="0000000000000000" d:precision="string">0</TimeZone>
+	<SummerTime d:type="sFloat32" d:alt_encoding="000000000020AC40" d:precision="string">3600</SummerTime>
+	<HasSpeedsigns d:type="bool">1</HasSpeedsigns>
+</cRouteProperties>
