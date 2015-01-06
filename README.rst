@@ -30,8 +30,11 @@ Usage
   `*.AP file tutorial <http://www.rstools.info/RW_Tools_and_APfiles.pdf>`_.
 
 * Run from console using ``python dispatcher.py`` -
-  a ``WorkOrder.html`` file will be created and opened in your default browser
-  containing a description of your duties.
+  a uniquely numbered HTML file will be generated in WorkOrders folder inside your Railworks
+  installation and opened in your default browser.
+
+* You can also create multiple work orders at once using ``python dispatcher.py 5`` where
+  ``5`` is the number of work orders to create.
 
 
 Acknowledgements
