@@ -15,7 +15,7 @@ The scenario briefing and description is taken from
 Setup
 -----
 
-* Install Python 2.7 (this dependency will be removed soon)
+* Install Python 3.3+ (this dependency will be removed soon). This project is being developed with Python 3.4.2.
 
 * Place in the same folder as your ``railworks.exe``.
 

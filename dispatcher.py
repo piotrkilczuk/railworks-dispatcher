@@ -71,7 +71,7 @@ def get_last_number(work_orders_folder):
 def int_to_time(int_time):
     HOUR = 3600
     hours = int(int_time / HOUR)
-    minutes = (int_time % HOUR) / 60
+    minutes = int((int_time % HOUR) / 60)
     return hours, minutes
 
 
@@ -152,7 +152,7 @@ def main():
 
         html_name = work_order_number + '.html'
         html_path = os.path.join(work_orders_folder, html_name)
-        open(html_path, 'w').write(html.encode('utf8'))
+        open(html_path, 'w').write(html)
         launch_html(html_path)
 
 
