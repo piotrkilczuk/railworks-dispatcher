@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import datetime
 import getpass
 import glob
@@ -11,11 +12,13 @@ import sys
 from xml.etree import ElementTree
 
 
+HIGH_TOLERANCE = 15
 IGNORED_SCENARIO_CLASSES = (
     'eFreeRoamScenarioClass',
     'eTemplateScenarioClass',
     'eTutorialScenarioClass',
 )
+LOW_TOLERANCE = 15
 TEMPLATE_BOILERPLATE = """<!DOCTYPE html>
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
@@ -92,6 +95,13 @@ def launch_html(path):
         os.system('xdg-open \'%s\'' % path)
 
 
+# @TODO: put this in a class
+def parse_args(args=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('work_orders', default=1, nargs='?')
+    return parser.parse_args(args)
+
+
 def render_html(context):
     return string.Template(TEMPLATE_BOILERPLATE).safe_substitute(**context)
 
@@ -102,12 +112,34 @@ def render_work_order(context):
 
 def to_minutes(time_string):
     pattern = re.compile('(?P<inte>[0-9\.]{1,4})(?P<stri>[hm]{1})')
-    i, s = pattern.match(time_string).groups()
-    minutes = float(i) * 60 if s == 'h' else i
-    return int(minutes)
+    try:
+        i, s = pattern.match(time_string).groups()
+        minutes = float(i) * 60 if s == 'h' else i
+        return int(minutes)
+    except AttributeError:
+        raise ValueError('Value %s does not meet the expected format.' % time_string)
 
 
 def main():
+
+    complete_order_count = 0
+    """
+    How many work orders were generated
+    """
+    complete_order_duration = 0
+    """
+    How many minutes will generated work orders take
+    """
+
+    needed_order_count = None
+    """
+    How many work orders should be generated
+    """
+    needed_order_duration_span = None
+    """
+    How many minutes should work orders take
+    """
+
     railworks_folder = os.getcwd()
     scenario_folders = os.path.join(railworks_folder,
                                     'Content', 'Routes', '*', 'Scenarios', '*', 'ScenarioProperties.xml')
@@ -117,9 +149,17 @@ def main():
     dispatcher_folder = os.path.abspath(os.path.dirname(__file__))
     dispatcher_data_folder = os.path.join(dispatcher_folder, 'Dispatcher')
 
-    order_count = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+    args = parse_args(sys.argv[1:])
+    try:
+        order_minutes = to_minutes(args.work_orders)
+        # if we set min duration to 1 minute, orders with incorrectly set duration of 0 will be left out
+        needed_order_duration_span = (max(order_minutes - LOW_TOLERANCE, 1), order_minutes + HIGH_TOLERANCE)
+    except (TypeError, ValueError):
+        needed_order_count = int(args.work_orders)
+
     orders_html = []
     all_scenarios = glob.glob(scenario_folders)
+    random.shuffle(all_scenarios)
 
     if not all_scenarios:
         die('No scenarios found. Are you sure you are running dispatcher from the correct folder?')
@@ -130,62 +170,78 @@ def main():
         'username': humanize_username(getpass.getuser()),
     }
 
-    for o in range(order_count):
-        shift_number = str(get_last_number(work_orders_folder) + o + 1).zfill(4)
+    def should_continue(count, duration):
+        if needed_order_count is not None:
+            return count < needed_order_count
+        else:
+            return not(needed_order_duration_span[0] < duration < needed_order_duration_span[1])
 
-        while True:
-            todays_work_order = random.choice(all_scenarios)
+    while all_scenarios and should_continue(complete_order_count, complete_order_duration):
 
-            # only allow scenarios from existing unpacked routes
-            scenario_folder_suffix = os.path.join(*todays_work_order.split(os.sep)[-3:])
-            route_folder = todays_work_order.replace(scenario_folder_suffix, '')
-            route_description = os.path.join(route_folder, 'RouteProperties.xml')
-            if not os.path.exists(route_description):
-                continue
+        shift_number = str(get_last_number(work_orders_folder) + complete_order_count + 1).zfill(4)
 
-            xml = ElementTree.parse(todays_work_order)
+        todays_work_order = all_scenarios[-1]
+        all_scenarios.pop()
 
-            scenario_class = xml.find('./ScenarioClass').text
-            if scenario_class in IGNORED_SCENARIO_CLASSES:
-                continue
+        # only allow scenarios from existing unpacked routes
+        scenario_folder_suffix = os.path.join(*todays_work_order.split(os.sep)[-3:])
+        route_folder = todays_work_order.replace(scenario_folder_suffix, '')
+        route_description = os.path.join(route_folder, 'RouteProperties.xml')
+        if not os.path.exists(route_description):
+            continue
 
-            scenario_name = xml.find('./DisplayName/Localisation-cUserLocalisedString/English').text
-            scenario_description = xml.find('./Description/Localisation-cUserLocalisedString/English').text
-            scenario_briefing = xml.find('./Briefing/Localisation-cUserLocalisedString/English').text
+        xml = ElementTree.parse(todays_work_order)
+
+        scenario_class = xml.find('./ScenarioClass').text
+        if scenario_class in IGNORED_SCENARIO_CLASSES:
+            continue
+
+        scenario_duration = int(xml.find('./DurationMins').text)
+        if (needed_order_duration_span is not None and
+            complete_order_duration + scenario_duration > needed_order_duration_span[1]):
+            continue
+
+        scenario_name = xml.find('./DisplayName/Localisation-cUserLocalisedString/English').text
+        scenario_description = xml.find('./Description/Localisation-cUserLocalisedString/English').text
+        scenario_briefing = xml.find('./Briefing/Localisation-cUserLocalisedString/English').text
+
+        template_context.update({
+            'scenario_name': scenario_name,
+            'scenario_description': scenario_description,
+            'scenario_briefing': scenario_briefing,
+            'scenario_class': scenario_class,
+            'shift_number': shift_number,
+        })
+
+        # only calculate start date and location for the very first work order
+        if complete_order_count == 0:
+            scenario_start_location = xml.find('./StartLocation/Localisation-cUserLocalisedString/English').text
+            scenario_start_time = xml.find('./StartTime').text
+            scenario_start_day = xml.find('./StartDD').text
+            scenario_start_month = xml.find('./StartMM').text
+            scenario_start_year = xml.find('./StartYYYY').text
+
+            time = int_to_time(int(scenario_start_time))
+            time_adjust = random.randrange(15, 45)
+            date = datetime.datetime(
+                int(scenario_start_year), int(scenario_start_month), int(scenario_start_day),
+                *time
+            ) - datetime.timedelta(minutes=time_adjust)
 
             template_context.update({
-                'scenario_name': scenario_name,
-                'scenario_description': scenario_description,
-                'scenario_briefing': scenario_briefing,
-                'scenario_class': scenario_class,
-                'shift_number': shift_number,
+                'date': date,
+                'scenario_start_location': scenario_start_location or 'Depot',
             })
 
-            # only calculate start date and location for the very first work order
-            if o == 0:
-                scenario_start_location = xml.find('./StartLocation/Localisation-cUserLocalisedString/English').text
-                scenario_start_time = xml.find('./StartTime').text
-                scenario_start_day = xml.find('./StartDD').text
-                scenario_start_month = xml.find('./StartMM').text
-                scenario_start_year = xml.find('./StartYYYY').text
+        orders_html.append(render_work_order(template_context))
 
-                time = int_to_time(int(scenario_start_time))
-                time_adjust = random.randrange(15, 45)
-                date = datetime.datetime(
-                    int(scenario_start_year), int(scenario_start_month), int(scenario_start_day),
-                    *time
-                ) - datetime.timedelta(minutes=time_adjust)
+        complete_order_count += 1
+        complete_order_duration += int(scenario_duration)
 
-                template_context.update({
-                    'date': date,
-                    'scenario_start_location': scenario_start_location or 'Depot',
-                })
+    if not complete_order_count:
+        die('Not able to generate any scenario meeting your requirements. Sorry.')
 
-            orders_html.append(render_work_order(template_context))
-
-            break
-
-    last_work_order_number = str(get_last_number(work_orders_folder) + order_count).zfill(4)
+    last_work_order_number = str(get_last_number(work_orders_folder) + complete_order_count).zfill(4)
 
     template_context.update({'orders': "\n".join(orders_html)})
     html = render_html(template_context)
