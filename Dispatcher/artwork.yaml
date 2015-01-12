@@ -1,0 +1,12 @@
+Default:
+  - until: 1950-12-31
+    logo: BR_lion.jpg
+  - from: 1951-01-01
+    until: 1990-12-31
+    logo: BR_arrows.jpg
+  - from: 1991-01-01
+    logo: NetworkRail.jpg
+
+#GEML:
+#  - from: 2012-01-01
+#    logo: AbellioGA.png

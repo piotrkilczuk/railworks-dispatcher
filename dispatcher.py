@@ -11,6 +11,8 @@ import string
 import sys
 from xml.etree import ElementTree
 
+import yaml
+
 
 BREAK_LENGTH = 15
 HIGH_TOLERANCE = 15
@@ -40,7 +42,7 @@ TEMPLATE_BOILERPLATE = """<!DOCTYPE html>
 TEMPLATE_WORK_ORDER = """
     <article class="${scenario_class}">
         <div class="collapsible">
-            <img class="logo" src="file://${dispatcher_artwork_folder}/${logo}" alt="">
+            <img class="logo" src="file://${dispatcher_artwork_folder}/Logos/${logo}" alt="">
             <div>Driver ${username}</div>
             <div class="larger">Shift ${shift_number}</div>
         </div>
@@ -75,6 +77,20 @@ def ensure_folder(path):
         return True
     except OSError:
         return False
+
+
+def get_arwork_for_date(artwork_dict, date):
+    for artwork in artwork_dict:
+        lo, hi = artwork.get('from'), artwork.get('until')
+        if lo:
+            lo_dt = datetime.datetime.combine(lo, datetime.time())
+            if date < lo_dt:
+                continue
+        if hi:
+            hi_dt = datetime.datetime.combine(hi, datetime.time()) + datetime.timedelta(days=1)
+            if date >= hi_dt:
+                continue
+        return artwork['logo']
 
 
 def get_last_number(work_orders_folder):
@@ -146,6 +162,15 @@ def main():
     How many minutes should work orders take
     """
 
+    default_route_config = None
+    """
+    Route artwork config to use when given route is not present in route_configs
+    """
+    route_configs = None
+    """
+    A dictionary of route artwork configs, indexed by route name
+    """
+
     railworks_folder = os.getcwd()
     scenario_folders = os.path.join(railworks_folder,
                                     'Content', 'Routes', '*', 'Scenarios', '*', 'ScenarioProperties.xml')
@@ -170,9 +195,13 @@ def main():
     if not all_scenarios:
         die('No scenarios found. Are you sure you are running dispatcher from the correct folder?')
 
+    with open(os.path.join(dispatcher_data_folder, 'artwork.yaml')) as f:
+        route_config_yaml = yaml.load(f)
+    default_route_config = route_config_yaml.pop('Default')
+    route_configs = route_config_yaml
+
     template_context = {
         'dispatcher_artwork_folder': os.path.join(dispatcher_data_folder, 'Artwork'),
-        'logo': 'BR.jpg',
         'username': humanize_username(getpass.getuser()),
     }
 
@@ -211,7 +240,26 @@ def main():
         scenario_description = xml.find('./Description/Localisation-cUserLocalisedString/English').text
         scenario_briefing = xml.find('./Briefing/Localisation-cUserLocalisedString/English').text
 
+        scenario_start_location = xml.find('./StartLocation/Localisation-cUserLocalisedString/English').text
+        scenario_start_time = xml.find('./StartTime').text
+        scenario_start_day = xml.find('./StartDD').text
+        scenario_start_month = xml.find('./StartMM').text
+        scenario_start_year = xml.find('./StartYYYY').text
+
+        time = int_to_time(int(scenario_start_time))
+        time_adjust = random.randrange(15, 45)
+        date = datetime.datetime(
+            int(scenario_start_year), int(scenario_start_month), int(scenario_start_day),
+            *time
+        ) - datetime.timedelta(minutes=time_adjust)
+
+        xml = ElementTree.parse(route_description)
+        route_name = xml.find('./DisplayName/Localisation-cUserLocalisedString/English').text
+        route_artwork = route_configs.get(route_name, default_route_config)
+        logo = get_arwork_for_date(route_artwork, date)
+
         template_context.update({
+            'logo': logo,
             'scenario_name': scenario_name,
             'scenario_description': scenario_description,
             'scenario_briefing': scenario_briefing,
@@ -221,19 +269,6 @@ def main():
 
         # only calculate start date and location for the very first work order
         if complete_order_count == 0:
-            scenario_start_location = xml.find('./StartLocation/Localisation-cUserLocalisedString/English').text
-            scenario_start_time = xml.find('./StartTime').text
-            scenario_start_day = xml.find('./StartDD').text
-            scenario_start_month = xml.find('./StartMM').text
-            scenario_start_year = xml.find('./StartYYYY').text
-
-            time = int_to_time(int(scenario_start_time))
-            time_adjust = random.randrange(15, 45)
-            date = datetime.datetime(
-                int(scenario_start_year), int(scenario_start_month), int(scenario_start_day),
-                *time
-            ) - datetime.timedelta(minutes=time_adjust)
-
             template_context.update({
                 'date': date,
                 'scenario_start_location': scenario_start_location or 'Depot',

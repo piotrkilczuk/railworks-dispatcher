@@ -6,13 +6,13 @@
 				<e d:type="sUInt64">5504696524896228929</e>
 				<e d:type="sUInt64">12217931452102864286</e>
 			</UUID>
-			<DevString d:type="cDeltaString">7962465b-80c1-4230-b8f9-6d7c889236d2</DevString>
+			<DevString d:type="cDeltaString">02c45641-9c53-4c64-9eed-a91ceccf8ea9</DevString>
 		</cGUID>
 	</ID>
 	<String/>
 	<DisplayName>
 		<Localisation-cUserLocalisedString>
-			<English d:type="cDeltaString">45 Minute Scenario @GEML</English>
+			<English d:type="cDeltaString">60 Minute Scenario @PDL</English>
 			<French d:type="cDeltaString"></French>
 			<Italian d:type="cDeltaString"></Italian>
 			<German d:type="cDeltaString"></German>
@@ -68,10 +68,10 @@
 	</StartLocation>
 	<ScenarioClass d:type="cDeltaString">eTimetableScenarioClass</ScenarioClass>
 	<StartTime d:type="sFloat32" d:alt_encoding="00000000000AD440" d:precision="string">20520</StartTime>
-	<DurationMins d:type="sInt32">45</DurationMins>
+	<DurationMins d:type="sInt32">60</DurationMins>
 	<StartDD d:type="sInt32">19</StartDD>
 	<StartMM d:type="sInt32">11</StartMM>
-	<StartYYYY d:type="sInt32">2013</StartYYYY>
+	<StartYYYY d:type="sInt32">1983</StartYYYY>
 	<Season d:type="cDeltaString">SEASON_AUTUMN</Season>
 	<WeatherBlueprint>
 		<iBlueprintLibrary-cAbsoluteBlueprintID>
