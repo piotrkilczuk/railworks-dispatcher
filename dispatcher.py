@@ -41,6 +41,12 @@ TEMPLATE = """<!DOCTYPE html>
 </html>"""
 
 
+def die(message='', code=1):
+    if message:
+        print(message, file=sys.stderr)
+    sys.exit(code)
+
+
 def humanize_username(username):
     SPLITTERS = '.-'
     IGNORED = '0123456789'  # @TODO: remove funny chars from usernames
@@ -92,11 +98,14 @@ def main():
                                     'Content', 'Routes', '*', 'Scenarios', '*', 'ScenarioProperties.xml')
     work_orders_folder = os.path.join(railworks_folder, 'WorkOrders')
 
-    dispatcher_folder = os.path.abspath(os.path.dirname(sys.argv[0]))
+    dispatcher_folder = os.path.abspath(os.path.dirname(__file__))
     dispatcher_data_folder = os.path.join(dispatcher_folder, 'Dispatcher')
 
     order_count = int(sys.argv[1]) if len(sys.argv) > 1 else 1
     all_scenarios = glob.glob(scenario_folders)
+
+    if not all_scenarios:
+        die('No scenarios found. Are you sure you are running dispatcher from the correct folder?')
 
     for o in range(order_count):
         while True:
