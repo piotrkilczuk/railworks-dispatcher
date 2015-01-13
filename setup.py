@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+
 from setuptools import setup
 
 
@@ -22,7 +24,7 @@ setup(
     author_email='centralny@centralny.info',
     license='MIT License',
 
-    version='0.4.11',
+    version='0.4.12',
     platforms=['Windows', 'POSIX'],
 
     entry_points={

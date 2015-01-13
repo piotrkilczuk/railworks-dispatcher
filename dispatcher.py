@@ -33,17 +33,23 @@ TEMPLATE_BOILERPLATE = """<!DOCTYPE html>
     </head>
     <body>
         ${orders}
+        <script type="application/javascript" src="${dispatcher_artwork_folder}/../snack-min.js"></script>
+        <script type="application/javascript" src="${dispatcher_artwork_folder}/../main.js"></script>
     </body>
 </html>"""
 TEMPLATE_WORK_ORDER = """
     <article class="${scenario_class}">
-        <img class="logo" src="file://${dispatcher_artwork_folder}/${logo}" alt="">
-        <div>Driver ${username}</div>
-        <div class="larger">Shift ${shift_number}</div>
+        <div class="collapsible">
+            <img class="logo" src="file://${dispatcher_artwork_folder}/${logo}" alt="">
+            <div>Driver ${username}</div>
+            <div class="larger">Shift ${shift_number}</div>
+        </div>
         <h1>${scenario_name}</h1>
-        <div class="larger">${scenario_description}</div>
-        <div class="with-margin">${scenario_briefing}</div>
-        <div class="with-margin">Printed ${date} at ${scenario_start_location}</div>
+        <div class="collapsible">
+            <div class="larger">${scenario_description}</div>
+            <div class="with-margin">${scenario_briefing}</div>
+            <div class="with-margin">Printed ${date} at ${scenario_start_location}</div>
+        </div>
     </article>
 """
 

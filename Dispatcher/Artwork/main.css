@@ -31,6 +31,7 @@ html, body {
 
 article {
     border: dotted 1px #000;
+    cursor: pointer;
     font-family: Dots, monospace;
     font-size: 20px;
     line-height: 1.2em;
@@ -38,6 +39,18 @@ article {
     padding: 0.5cm;
     page-break-inside: avoid;
     width: 14cm;
+}
+
+@media screen {
+    .collapsed .collapsible {
+        display: none;
+    }
+
+    .collapsed h1 {
+        border: none;
+        margin: 0;
+        padding: 0;
+    }
 }
 
 img {
