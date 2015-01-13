@@ -24,7 +24,7 @@ setup(
     author_email='centralny@centralny.info',
     license='MIT License',
 
-    version='0.4.12',
+    version='0.4.13',
     platforms=['Windows', 'POSIX'],
 
     entry_points={

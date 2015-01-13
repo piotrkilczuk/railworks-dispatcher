@@ -1,2 +1,3 @@
 include dispatcher.py
 include Dispatcher/Artwork/*.*
+include Dispatcher/*.js
