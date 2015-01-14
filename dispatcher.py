@@ -12,6 +12,7 @@ import sys
 from xml.etree import ElementTree
 
 
+BREAK_LENGTH = 30
 HIGH_TOLERANCE = 15
 IGNORED_SCENARIO_CLASSES = (
     'eFreeRoamScenarioClass',
@@ -241,7 +242,7 @@ def main():
         orders_html.append(render_work_order(template_context))
 
         complete_order_count += 1
-        complete_order_duration += int(scenario_duration)
+        complete_order_duration += int(scenario_duration) + BREAK_LENGTH
 
     if not complete_order_count:
         die('Not able to generate any scenario meeting your requirements. Sorry.')
