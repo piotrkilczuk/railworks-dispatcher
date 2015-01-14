@@ -33,8 +33,7 @@ TEMPLATE_BOILERPLATE = """<!DOCTYPE html>
     </head>
     <body>
         ${orders}
-        <script type="application/javascript" src="${dispatcher_artwork_folder}/../snack-min.js"></script>
-        <script type="application/javascript" src="${dispatcher_artwork_folder}/../main.js"></script>
+        <script type="application/javascript" src="${dispatcher_artwork_folder}/build.js"></script>
     </body>
 </html>"""
 TEMPLATE_WORK_ORDER = """

@@ -15,6 +15,17 @@ CLASSIFIERS = [
 ]
 
 
+def compile_js():
+    setup_folder = os.path.abspath(os.path.dirname(__file__))
+    jar_location = os.path.join(setup_folder, 'build_tools', 'compiler.jar')
+    source_location = os.path.join(setup_folder, 'Dispatcher', '*.js')
+    target_location = os.path.join(setup_folder, 'Dispatcher', 'Artwork', 'build.js')
+    # @TODO: probably will require different redirections on Windows
+    os.system('java -jar %s %s > %s 2> /dev/null' % (jar_location, source_location, target_location))
+
+compile_js()
+
+
 setup(
     name='Dispatcher',
     description='Creates a work order by choosing a random scenario from your Railworks folder.',
