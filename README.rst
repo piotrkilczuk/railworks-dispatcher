@@ -33,8 +33,13 @@ Usage
   a uniquely numbered HTML file will be generated in WorkOrders folder inside your Railworks
   installation and opened in your default browser.
 
-* You can also create multiple work orders at once using ``python dispatcher.py 5`` where
-  ``5`` is the number of work orders to create.
+* You can also create multiple work orders at once. There are two ways to do this:
+
+  * ``python dispatcher.py 1h`` or ``python dispatcher.py 60m`` - create the orders by
+    estimate time you want them to take. Dispatcher will assume you need a 15 minute
+    break between scenarios.
+
+  * ``python dispatcher.py 2`` will create a fixed number of scenarios - in this case two
 
 
 Acknowledgements

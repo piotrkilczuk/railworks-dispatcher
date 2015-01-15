@@ -12,7 +12,7 @@ import sys
 from xml.etree import ElementTree
 
 
-BREAK_LENGTH = 30
+BREAK_LENGTH = 15
 HIGH_TOLERANCE = 15
 IGNORED_SCENARIO_CLASSES = (
     'eFreeRoamScenarioClass',
