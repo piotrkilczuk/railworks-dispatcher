@@ -39,7 +39,7 @@ Usage
     estimate time you want them to take. Dispatcher will assume you need a 15 minute
     break between scenarios.
 
-  * ``python dispatcher.py 2`` will create a fixed number of scenarios - in this case two
+  * ``python dispatcher.py 2`` will create a fixed number of scenarios
 
 
 Acknowledgements
