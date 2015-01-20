@@ -7,6 +7,13 @@ Default:
   - from: 1991-01-01
     logo: NetworkRail.jpg
 
-#GEML:
-#  - from: 2012-01-01
-#    logo: AbellioGA.png
+Portsmouth Direct Line:
+  - from: 1982-01-02
+    until: 1996-02-03
+    logo: NSE.png
+  - from: 1996-02-04
+    logo: SWT.jpg
+
+# ECML London - Peterborough
+# Settle to Carlisle
+# GEML London Ipswich
