@@ -15,6 +15,9 @@ Portsmouth Direct Line:
     logo: SWT.jpg
 
 ECML London - Peterborough:
+  - from: 1982-01-02
+    until: 1997-03-01
+    logo: NSE.png
   - from: 1997-03-02
     until: 2006-03-31
     logo: Thameslink_old.png
@@ -24,5 +27,11 @@ ECML London - Peterborough:
   - from: 2014-09-14
     logo: GN.jpg
 
-# Settle to Carlisle
+Settle to Carlisle:
+  - from: 1998-03-01
+    until: 2004-12-11
+    logo: FNW.png
+  - from: 2004-12-12
+    logo: Northern.gif
+
 # GEML London Ipswich
