@@ -34,4 +34,18 @@ Settle to Carlisle:
   - from: 2004-12-12
     logo: Northern.gif
 
-# GEML London Ipswich
+GEML London Ipswich:
+  - from: 1982-01-02
+    until: 1997-01-04
+    logo: NSE.png
+  - from: 1997-01-05
+    until: 2004-03-31
+    logo: FGE.gif
+  - from: 2004-04-01
+    until: 2008-01-31
+    logo: One.gif
+  - from: 2008-02-01
+    until: 2012-02-04
+    logo: NXEA.png
+  - from: 2012-02-05
+    logo: Abellio_GA.png
