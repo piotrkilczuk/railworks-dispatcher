@@ -16,6 +16,10 @@ import yaml
 
 BREAK_LENGTH = 15
 HIGH_TOLERANCE = 15
+IGNORED_ROUTES = (
+    'Academy',
+    'TestTraK',
+)
 IGNORED_SCENARIO_CLASSES = (
     'eFreeRoamScenarioClass',
     'eTemplateScenarioClass',
@@ -223,6 +227,10 @@ def main():
         route_folder = todays_work_order.replace(scenario_folder_suffix, '')
         route_description = os.path.join(route_folder, 'RouteProperties.xml')
         if not os.path.exists(route_description):
+            continue
+        xml = ElementTree.parse(route_description)
+        route_name = xml.find('./DisplayName/Localisation-cUserLocalisedString/English').text
+        if route_name in IGNORED_ROUTES:
             continue
 
         xml = ElementTree.parse(todays_work_order)
