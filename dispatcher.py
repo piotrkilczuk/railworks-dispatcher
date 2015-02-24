@@ -66,6 +66,14 @@ def die(message='', code=1):
     sys.exit(code)
 
 
+def entry_banner():
+    pass
+
+
+def exit_banner():
+    pass
+
+
 def humanize_username(username):
     SPLITTERS = '.-'
     IGNORED = '0123456789'  # @TODO: remove funny chars from usernames
@@ -124,7 +132,7 @@ def launch_html(path):
 # @TODO: put this in a class
 def parse_args(args=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('work_orders', default=1, nargs='?')
+    parser.add_argument('work_orders', nargs='?')
     return parser.parse_args(args)
 
 
@@ -175,6 +183,8 @@ def main():
     A dictionary of route artwork configs, indexed by route name
     """
 
+    entry_banner()
+
     railworks_folder = os.getcwd()
     scenario_folders = os.path.join(railworks_folder,
                                     'Content', 'Routes', '*', 'Scenarios', '*', 'ScenarioProperties.xml')
@@ -185,6 +195,13 @@ def main():
     dispatcher_data_folder = os.path.join(dispatcher_folder, 'Dispatcher')
 
     args = parse_args(sys.argv[1:])
+
+    if args.work_orders is None:
+        print('How many work orders should I create?\n')
+        print('* use a natural number such as 1 to create one working order')
+        print('* use a phrase such as 30m or 2h to create scenario(s) that will last approximately that long \n')
+        args.work_orders = input('... [default: 1] ') or '1'
+
     try:
         order_minutes = to_minutes(args.work_orders)
         # if we set min duration to 1 minute, orders with incorrectly set duration of 0 will be left out
@@ -299,6 +316,8 @@ def main():
     html_path = os.path.join(work_orders_folder, html_name)
     open(html_path, 'w').write(html)
     launch_html(html_path)
+
+    exit_banner()
 
 
 if __name__ == '__main__':
