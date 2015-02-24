@@ -29,17 +29,15 @@ Usage
   This has been described in detail by Mike, the author of RW-Tools, in his
   `*.AP file tutorial <http://www.rstools.info/RW_Tools_and_APfiles.pdf>`_.
 
-* Run from console using ``python dispatcher.py`` -
-  a uniquely numbered HTML file will be generated in WorkOrders folder inside your Railworks
-  installation and opened in your default browser.
+* Run from console using ``python dispatcher.py`` - you will be asked about how many work
+  orders you'd like to generated at once. A uniquely numbered HTML file will be generated
+  in WorkOrders folder inside your Railworks installation and opened in your default browser.
 
-* You can also create multiple work orders at once. There are two ways to do this:
+* You can also specify duration / number of work orders to create on the command line, e.g.:
 
-  * ``python dispatcher.py 1h`` or ``python dispatcher.py 60m`` - create the orders by
-    estimate time you want them to take. Dispatcher will assume you need a 15 minute
-    break between scenarios.
+  * ``python dispatcher.py 1h`` or ``python dispatcher.py 60m``
 
-  * ``python dispatcher.py 2`` will create a fixed number of scenarios
+  * ``python dispatcher.py 2``
 
 
 Acknowledgements

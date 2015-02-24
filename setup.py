@@ -35,7 +35,7 @@ setup(
     author_email='centralny@centralny.info',
     license='MIT License',
 
-    version='0.4.15',
+    version='0.4.16',
     install_requires=['PyYAML'],
     platforms=['Windows', 'POSIX'],
 
