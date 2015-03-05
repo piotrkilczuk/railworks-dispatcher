@@ -277,10 +277,13 @@ def main():
 
         time = int_to_time(int(scenario_start_time))
         time_adjust = random.randrange(15, 45)
-        date = datetime.datetime(
-            int(scenario_start_year), int(scenario_start_month), int(scenario_start_day),
-            *time
-        ) - datetime.timedelta(minutes=time_adjust)
+        try:
+            date = datetime.datetime(
+                int(scenario_start_year), int(scenario_start_month), int(scenario_start_day),
+                *time
+            ) - datetime.timedelta(minutes=time_adjust)
+        except ValueError:
+            date = None
 
         xml = ElementTree.parse(route_description)
         route_name = xml.find('./DisplayName/Localisation-cUserLocalisedString/English').text
