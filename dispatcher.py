@@ -4,6 +4,7 @@ import argparse
 import datetime
 import getpass
 import glob
+import itertools
 import os
 import random
 import re
@@ -133,6 +134,7 @@ def launch_html(path):
 def parse_args(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('work_orders', nargs='?')
+    parser.add_argument('--list', action='store_true')
     return parser.parse_args(args)
 
 
@@ -156,9 +158,9 @@ def to_minutes(time_string):
 
 def main():
 
-    complete_order_count = 0
+    complete_orders = []
     """
-    How many work orders were generated
+    Work orders generated
     """
     complete_order_duration = 0
     """
@@ -196,6 +198,15 @@ def main():
 
     args = parse_args(sys.argv[1:])
 
+    all_scenarios = glob.glob(scenario_folders)
+    random.shuffle(all_scenarios)
+
+    if not all_scenarios:
+        die('No scenarios found. Are you sure you are running dispatcher from the correct folder?')
+
+    if args.list:
+        args.work_orders = len(all_scenarios)
+
     if args.work_orders is None:
         print('How many work orders should I create?\n')
         print('* use a natural number such as 1 to create one working order')
@@ -209,13 +220,6 @@ def main():
     except (TypeError, ValueError):
         needed_order_count = int(args.work_orders)
 
-    orders_html = []
-    all_scenarios = glob.glob(scenario_folders)
-    random.shuffle(all_scenarios)
-
-    if not all_scenarios:
-        die('No scenarios found. Are you sure you are running dispatcher from the correct folder?')
-
     with open(os.path.join(dispatcher_data_folder, 'artwork.yaml')) as f:
         route_config_yaml = yaml.load(f)
     default_route_config = route_config_yaml.pop('Default')
@@ -226,15 +230,15 @@ def main():
         'username': humanize_username(getpass.getuser()),
     }
 
-    def should_continue(count, duration):
+    def should_continue(completed_list, duration):
         if needed_order_count is not None:
-            return count < needed_order_count
+            return len(completed_list) < needed_order_count
         else:
             return not(needed_order_duration_span[0] < duration < needed_order_duration_span[1])
 
-    while all_scenarios and should_continue(complete_order_count, complete_order_duration):
+    while all_scenarios and should_continue(complete_orders, complete_order_duration):
 
-        shift_number = str(get_last_number(work_orders_folder) + complete_order_count + 1).zfill(4)
+        shift_number = str(get_last_number(work_orders_folder) + len(complete_orders) + 1).zfill(4)
 
         todays_work_order = all_scenarios[-1]
         all_scenarios.pop()
@@ -283,8 +287,11 @@ def main():
         route_artwork = route_configs.get(route_name, default_route_config)
         logo = get_arwork_for_date(route_artwork, date)
 
-        template_context.update({
+        complete_orders.append({
+            'date': date,
             'logo': logo,
+            'route_name': route_name,
+            'scenario_start_location': scenario_start_location or 'Depot',
             'scenario_name': scenario_name,
             'scenario_description': scenario_description,
             'scenario_briefing': scenario_briefing,
@@ -292,30 +299,44 @@ def main():
             'shift_number': shift_number,
         })
 
-        # only calculate start date and location for the very first work order
-        if complete_order_count == 0:
-            template_context.update({
-                'date': date,
-                'scenario_start_location': scenario_start_location or 'Depot',
-            })
-
-        orders_html.append(render_work_order(template_context))
-
-        complete_order_count += 1
         complete_order_duration += int(scenario_duration) + BREAK_LENGTH
 
-    if not complete_order_count:
+    if not complete_orders:
         die('Not able to generate any scenario meeting your requirements. Sorry.')
 
-    last_work_order_number = str(get_last_number(work_orders_folder) + complete_order_count).zfill(4)
+    # Output html only if not list mode
+    if not args.list:
+        last_work_order_number = str(get_last_number(work_orders_folder) + len(complete_orders)).zfill(4)
 
-    template_context.update({'orders': "\n".join(orders_html)})
-    html = render_html(template_context)
+        orders_html = ''
+        for index, order_context in enumerate(complete_orders):
+            order_context.update(template_context)
 
-    html_name = last_work_order_number + '.html'
-    html_path = os.path.join(work_orders_folder, html_name)
-    open(html_path, 'w').write(html)
-    launch_html(html_path)
+            # always use first scenario's start date and location as footer (yes this is a feature)
+            if index > 0:
+                order_context.update({
+                    'scenario_start_location': complete_orders[0]['scenario_start_location'],
+                    'date': complete_orders[0]['date']
+                })
+            orders_html += render_work_order(order_context)
+
+        template_context.update({'orders': orders_html, 'shift_number': get_last_number(work_orders_folder) + 1})
+        html = render_html(template_context)
+
+        html_name = last_work_order_number + '.html'
+        html_path = os.path.join(work_orders_folder, html_name)
+        open(html_path, 'w').write(html)
+        launch_html(html_path)
+
+    # In list mode output scenarios grouped by route name
+    else:
+        route_name_getter = lambda order: order['route_name']
+        sorted_orders = sorted(complete_orders, key=route_name_getter)
+        grouped_orders = itertools.groupby(sorted_orders, key=route_name_getter)
+        for route, orders in grouped_orders:
+            print('\n * %s: \n' % route)
+            for order_context in orders:
+                print('   * %s' % order_context['scenario_name'])
 
     exit_banner()
 

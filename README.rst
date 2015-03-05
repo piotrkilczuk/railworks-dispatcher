@@ -23,11 +23,17 @@ Setup
 Usage
 -----
 
-* Unpack using 7Zip or RW-Tools all the routes and scenarios you want to be scanned.
-  Since 2014 DTG have started packing some assets in loseless ZIP files with .ap extension
-  which Dispatcher is not able to look through at the moment for performance reasons.
-  This has been described in detail by Mike, the author of RW-Tools, in his
-  `*.AP file tutorial <http://www.rstools.info/RW_Tools_and_APfiles.pdf>`_.
+* Unpack using all the RouteDescription.xml files and scenarios you want to be scanned.
+  This is very easy using `RWTools <http://www.rstools.info>`_, but you can just as well
+  unpack all the files using 7-Zip or similar tool. Since 2014 DTG have started packing
+  some assets in ZIP files with .ap extension which Dispatcher is not able to look
+  through at the moment for performance reasons. This has been described in detail by Mike,
+  the author of RW-Tools, in his `*.AP file tutorial <http://www.rstools.info/RW_Tools_and_APfiles.pdf>`_.
+  If you ever 'Verify integrity of game cache' using steam client you'll have to perform the unpacking again.
+
+* If you want to make sure you've unpacked everything correctly just run ``python dispatcher.py --list``
+  and you'll get the list of all scenarios available to Railworks Dispatcher grouped by routes.
+  Any scenario or route that you don't see here is not available for the Dispatcher.
 
 * Run from console using ``python dispatcher.py`` - you will be asked about how many work
   orders you'd like to generated at once. A uniquely numbered HTML file will be generated
