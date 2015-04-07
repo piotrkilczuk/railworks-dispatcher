@@ -260,7 +260,11 @@ def main():
         if scenario_class in IGNORED_SCENARIO_CLASSES:
             continue
 
-        scenario_duration = int(xml.find('./DurationMins').text)
+        try:
+            scenario_duration = int(xml.find('./DurationMins').text)
+        except TypeError:
+            continue
+
         if (needed_order_duration_span is not None and
             complete_order_duration + scenario_duration > needed_order_duration_span[1]):
             continue
@@ -268,6 +272,9 @@ def main():
         scenario_name = xml.find('./DisplayName/Localisation-cUserLocalisedString/English').text
         scenario_description = xml.find('./Description/Localisation-cUserLocalisedString/English').text
         scenario_briefing = xml.find('./Briefing/Localisation-cUserLocalisedString/English').text
+
+        if scenario_name is None:
+            continue
 
         scenario_start_location = xml.find('./StartLocation/Localisation-cUserLocalisedString/English').text
         scenario_start_time = xml.find('./StartTime').text
