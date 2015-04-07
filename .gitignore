@@ -7,3 +7,5 @@ __pycache__
 README.html
 
 test/filesystem/railworks/WorkOrders/
+
+dispatcher.log

@@ -5,6 +5,7 @@ import datetime
 import getpass
 import glob
 import itertools
+import logging
 import os
 import random
 import re
@@ -134,6 +135,7 @@ def launch_html(path):
 def parse_args(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('work_orders', nargs='?')
+    parser.add_argument('--debug', action='store_true')
     parser.add_argument('--list', action='store_true')
     return parser.parse_args(args)
 
@@ -156,7 +158,7 @@ def to_minutes(time_string):
         raise ValueError('Value %s does not meet the expected format.' % time_string)
 
 
-def main():
+def _main():
 
     complete_orders = []
     """
@@ -187,7 +189,16 @@ def main():
 
     entry_banner()
 
+    args = parse_args(sys.argv[1:])
+
     railworks_folder = os.getcwd()
+
+    logfile = os.path.join(railworks_folder, 'dispatcher.log')
+    loglevel = logging.DEBUG if args.debug else logging.ERROR
+    logging.basicConfig(
+        filename=logfile, format='\n%(asctime)-15s %(levelname)-8s %(message)s', level=loglevel
+    )
+
     scenario_folders = os.path.join(railworks_folder,
                                     'Content', 'Routes', '*', 'Scenarios', '*', 'ScenarioProperties.xml')
     work_orders_folder = os.path.join(railworks_folder, 'WorkOrders')
@@ -195,8 +206,6 @@ def main():
 
     dispatcher_folder = os.path.abspath(os.path.dirname(__file__))
     dispatcher_data_folder = os.path.join(dispatcher_folder, 'Dispatcher')
-
-    args = parse_args(sys.argv[1:])
 
     all_scenarios = glob.glob(scenario_folders)
     random.shuffle(all_scenarios)
@@ -349,6 +358,14 @@ def main():
                 print('   * %s' % order_context['scenario_name'])
 
     exit_banner()
+
+
+def main():
+    try:
+        _main()
+    except Exception as exc:
+        sys.stdout.write('%s encountered in main loop. Please see dispatcher.log for details.\n' % type(exc).__name__)
+        logging.exception('Exception encountered in main loop')
 
 
 if __name__ == '__main__':
