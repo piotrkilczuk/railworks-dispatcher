@@ -45,6 +45,15 @@ TEMPLATE_BOILERPLATE = """<!DOCTYPE html>
         <script type="application/javascript" src="file://${dispatcher_artwork_folder}/build.js"></script>
     </body>
 </html>"""
+TEMPLATE_CONFIG = """
+# Automatically created by Railworks Dispatcher
+# See https://github.com/centralniak/railworks-dispatcher
+# for instructions how to configure your Railworks Dispatcher instance
+
+steam:
+  profile: ~
+  hours_two_weeks: 14
+"""
 TEMPLATE_WORK_ORDER = """
     <article class="${scenario_class}">
         <div class="collapsible">
@@ -66,6 +75,14 @@ def die(message='', code=1):
     if message:
         print(message, file=sys.stderr)
     sys.exit(code)
+
+
+def ensure_config_present(folder):
+    config_path = os.path.join(folder, 'dispatcher.yaml')
+    if not os.path.exists(config_path):
+        with open(config_path, 'w') as f:
+            f.write(TEMPLATE_CONFIG)
+    return config_path
 
 
 def entry_banner():
@@ -198,6 +215,10 @@ def _main():
     logging.basicConfig(
         filename=logfile, format='\n%(asctime)-15s %(levelname)-8s %(message)s', level=loglevel
     )
+
+    configfile = ensure_config_present(railworks_folder)
+    config = yaml.load(open(configfile))
+    logging.debug('Loaded config: %s' % config)
 
     scenario_folders = os.path.join(railworks_folder,
                                     'Content', 'Routes', '*', 'Scenarios', '*', 'ScenarioProperties.xml')
