@@ -35,7 +35,7 @@ setup(
     author_email='centralny@centralny.info',
     license='MIT License',
 
-    version='0.4.20',
+    version='0.4.25',
     install_requires=['PyYAML', 'steamodd'],
     platforms=['Windows', 'POSIX'],
 

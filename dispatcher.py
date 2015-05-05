@@ -353,7 +353,7 @@ def _main():
             continue
 
         scenario_start_location = xml.find('./StartLocation/Localisation-cUserLocalisedString/English').text
-        scenario_start_time = xml.find('./StartTime').text
+        scenario_start_time = xml.find('./StartTime').text.split('.')[0]
         scenario_start_day = xml.find('./StartDD').text
         scenario_start_month = xml.find('./StartMM').text
         scenario_start_year = xml.find('./StartYYYY').text
@@ -371,7 +371,7 @@ def _main():
         xml = ElementTree.parse(route_description)
         route_name = xml.find('./DisplayName/Localisation-cUserLocalisedString/English').text
         route_artwork = route_configs.get(route_name, default_route_config)
-        logo = get_arwork_for_date(route_artwork, date)
+        logo = get_arwork_for_date(route_artwork, date) if date is not None else None
 
         complete_orders.append({
             'date': date,

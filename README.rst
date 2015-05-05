@@ -61,6 +61,8 @@ Acknowledgements
 Changelog
 ---------
 
+* **0.4.25** improves handling of poorly tagged scenarios, such as ones with missing date
+
 * **0.4.24** adds a Changelog
 
 * **0.4.23** outputs number of minutes played in last 14 days, fetched from Steam
