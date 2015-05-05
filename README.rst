@@ -49,7 +49,18 @@ Usage
 Acknowledgements
 ----------------
 
+* This software uses `PyYAML by Kirill Simonov <http://pyyaml.org/wiki/PyYAML>`_ and
+  `steamodd by Anthony Garcia <https://github.com/Lagg/steamodd>`_ libraries.
+
 * The created work order uses dot matrix fonts created by
   `Svein Kåre Gunnarson <http://dionaea.com/information/fonts.php>`_.
 
 * The logos of Train Operating Companies are properties of their respective owners.
+
+
+Changelog
+---------
+
+* **0.4.24** adds a Changelog
+
+* **0.4.23** outputs number of minutes played in last 14 days, fetched from Steam
