@@ -9,6 +9,7 @@ import logging
 import os
 import random
 import re
+import steam
 import string
 import sys
 from xml.etree import ElementTree
@@ -28,6 +29,7 @@ IGNORED_SCENARIO_CLASSES = (
     'eTutorialScenarioClass',
 )
 LOW_TOLERANCE = 15
+STEAM_API_KEY = 'E0668EFB2DCED5DAAEFDAEA751B029DD'
 TEMPLATE_BOILERPLATE = """<!DOCTYPE html>
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
@@ -69,6 +71,13 @@ TEMPLATE_WORK_ORDER = """
         </div>
     </article>
 """
+
+
+def dictget(dikt, key):
+    d = dikt
+    for k in key.split('.'):
+        d = d[k]
+    return d
 
 
 def die(message='', code=1):
@@ -132,6 +141,21 @@ def get_last_number(work_orders_folder):
     last_file = os.path.split(all_htmls[-1])[1]
     last_number = int(last_file.split('.')[0])
     return last_number
+
+
+def get_steam_minutes_played(profile_id):
+    steam_response = steam.api.interface('IPlayerService').GetRecentlyPlayedGames(steamid=profile_id)
+    if not dictget(steam_response, 'response.total_count'):
+        return 0
+    for game in dictget(steam_response, 'response.games'):
+        if game['appid'] == 24010:
+            return game['playtime_2weeks']
+    return 0
+
+
+def get_steam_profile_id(nickname):
+    steam_response = steam.api.interface('ISteamUser').ResolveVanityURL(vanityurl='centralniak')
+    return dictget(steam_response, 'response.steamid')
 
 
 def int_to_time(int_time):
@@ -231,6 +255,8 @@ def _main():
     all_scenarios = glob.glob(scenario_folders)
     random.shuffle(all_scenarios)
 
+    steam.api.key.set(STEAM_API_KEY)
+
     if not all_scenarios:
         die('No scenarios found. Are you sure you are running dispatcher from the correct folder?')
 
@@ -239,6 +265,26 @@ def _main():
 
     if args.work_orders is None:
         print('How many work orders should I create?\n')
+
+        try:
+            steam_config = dictget(config, 'steam')
+            steam_profile = steam_config['profile']
+            steam_hours_planned = steam_config['hours_two_weeks']
+
+            if isinstance(steam_profile, str) and not steam_profile.isnumeric():
+                steam_profile = get_steam_profile_id(steam_profile)
+
+            steam_minutes_played = get_steam_minutes_played(steam_profile)
+
+        except KeyError as exc:
+            logging.warning('Unable to fetch data from steam %s' % exc)
+
+        else:
+            logging.debug('Steam profile %s played %d minutes out of %d in last 2 weeks' %
+                          (steam_profile, steam_minutes_played, steam_hours_planned * 60))
+            print('According to Steam you played %d/%d minutes in the last two weeks.\n' %
+                  (steam_minutes_played, steam_hours_planned * 60))
+
         print('* use a natural number such as 1 to create one working order')
         print('* use a phrase such as 30m or 2h to create scenario(s) that will last approximately that long \n')
         args.work_orders = input('... [default: 1] ') or '1'
