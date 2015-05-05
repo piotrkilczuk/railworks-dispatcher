@@ -61,6 +61,8 @@ Acknowledgements
 Changelog
 ---------
 
+* **0.4.27** does not break on missing Steam config in dispatcher.yaml
+
 * **0.4.26** easies generating of missing scenarios according to Steam hours played limit
 
 * **0.4.25** improves handling of poorly tagged scenarios, such as ones with missing date

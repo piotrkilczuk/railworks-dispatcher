@@ -276,13 +276,15 @@ def _main():
             steam_profile = steam_config['profile']
             steam_hours_planned = steam_config['hours_two_weeks']
 
+            assert steam_profile and steam_hours_planned
+			
             if isinstance(steam_profile, str) and not steam_profile.isnumeric():
                 steam_profile = get_steam_profile_id(steam_profile)
 
             steam_minutes_played = get_steam_minutes_played(steam_profile)
             steam_minutes_less = steam_hours_planned * 60 - steam_minutes_played
 
-        except KeyError as exc:
+        except (AssertionError, KeyError,) as exc:
             logging.warning('Unable to fetch data from steam %s' % exc)
 
         else:
