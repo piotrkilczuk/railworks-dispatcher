@@ -36,7 +36,7 @@ setup(
     license='MIT License',
 
     version='0.4.20',
-    install_requires=['PyYAML'],
+    install_requires=['PyYAML', 'steamodd'],
     platforms=['Windows', 'POSIX'],
 
     entry_points={
