@@ -264,7 +264,7 @@ def _main():
         args.work_orders = len(all_scenarios)
 
     if args.work_orders is None:
-        print('How many work orders should I create?\n')
+        steam_minutes_less = None
 
         try:
             steam_config = dictget(config, 'steam')
@@ -275,6 +275,7 @@ def _main():
                 steam_profile = get_steam_profile_id(steam_profile)
 
             steam_minutes_played = get_steam_minutes_played(steam_profile)
+            steam_minutes_less = steam_hours_planned * 60 - steam_minutes_played
 
         except KeyError as exc:
             logging.warning('Unable to fetch data from steam %s' % exc)
@@ -282,12 +283,16 @@ def _main():
         else:
             logging.debug('Steam profile %s played %d minutes out of %d in last 2 weeks' %
                           (steam_profile, steam_minutes_played, steam_hours_planned * 60))
-            print('According to Steam you played %d/%d minutes in the last two weeks.\n' %
-                  (steam_minutes_played, steam_hours_planned * 60))
+            print('According to Steam you played %d hours in the last two weeks.' % (steam_minutes_played / 60))
+            print('That\'s %d minutes less than the planned %d hours.' % (steam_minutes_less, steam_hours_planned))
+            print('You can just hit <Enter> to create the missing work orders.\n')
 
+        print('How many work orders should I create?\n')
         print('* use a natural number such as 1 to create one working order')
         print('* use a phrase such as 30m or 2h to create scenario(s) that will last approximately that long \n')
-        args.work_orders = input('... [default: 1] ') or '1'
+
+        default = str(steam_minutes_less) + 'm' if steam_minutes_less is not None else '1'
+        args.work_orders = input('... [default: %s] ' % default) or default
 
     try:
         order_minutes = to_minutes(args.work_orders)
@@ -311,6 +316,11 @@ def _main():
             return len(completed_list) < needed_order_count
         else:
             return not(needed_order_duration_span[0] < duration < needed_order_duration_span[1])
+
+    logging.debug('Will create scenarios with following constraints: %s' % {
+        'needed_order_count': needed_order_count,
+        'needed_order_duration_span': needed_order_duration_span
+    })
 
     while all_scenarios and should_continue(complete_orders, complete_order_duration):
 
