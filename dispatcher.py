@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# coding: utf-8
+
 import argparse
 import datetime
 import getpass
@@ -95,11 +97,14 @@ def ensure_config_present(folder):
 
 
 def entry_banner():
-    pass
+    print("""Welcome to  ⚑ Railworks Dispatcher 0.4
+    """)
 
 
 def exit_banner():
-    pass
+    print("""
+Right Away Driver ⚑
+    """)
 
 
 def humanize_username(username):
@@ -283,7 +288,7 @@ def _main():
         else:
             logging.debug('Steam profile %s played %d minutes out of %d in last 2 weeks' %
                           (steam_profile, steam_minutes_played, steam_hours_planned * 60))
-            print('According to Steam you played %d hours in the last two weeks.' % (steam_minutes_played / 60))
+            print('According to Steam you played roughly %d hour(s) in the last two weeks.' % (steam_minutes_played / 60))
             print('That\'s %d minutes less than the planned %d hours.' % (steam_minutes_less, steam_hours_planned))
             print('You can just hit <Enter> to create the missing work orders.\n')
 
