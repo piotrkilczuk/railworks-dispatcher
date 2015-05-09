@@ -305,8 +305,11 @@ def _main():
         order_minutes = to_minutes(args.work_orders)
         # if we set min duration to 1 minute, orders with incorrectly set duration of 0 will be left out
         needed_order_duration_span = (max(order_minutes - LOW_TOLERANCE, 1), order_minutes + HIGH_TOLERANCE)
+        logging.debug('Required %d minutes. Will generate between %d and %d' % (order_minutes, needed_order_duration_span[0], needed_order_duration_span[1]))
+		
     except (TypeError, ValueError):
         needed_order_count = int(args.work_orders)
+        logging.debug('Required %d work orders')
 
     with open(os.path.join(dispatcher_data_folder, 'artwork.yaml')) as f:
         route_config_yaml = yaml.load(f)
