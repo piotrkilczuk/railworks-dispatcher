@@ -1,0 +1,6 @@
+# Devel
+venv/
+
+# PyInstaller
+build/
+dist/
