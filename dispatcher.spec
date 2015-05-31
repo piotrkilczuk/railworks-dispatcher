@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-a = Analysis(['.\\dispatcher.py'],
+a = Analysis(['dispatcher.py'],
              pathex=['C:\\Users\\Piotr\\OpenSource\\railworks-dispatcher-windows'],
              hiddenimports=[],
              hookspath=None,

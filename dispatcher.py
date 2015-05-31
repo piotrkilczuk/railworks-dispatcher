@@ -3,6 +3,8 @@
 import os
 import _winreg
 
+import jinja2
+
 
 steam_key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, 'Software\\Valve\\Steam')
 steam_path = _winreg.QueryValueEx(steam_key, 'SteamPath')[0]
