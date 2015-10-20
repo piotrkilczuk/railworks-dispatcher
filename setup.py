@@ -35,8 +35,8 @@ setup(
     author_email='centralny@centralny.info',
     license='MIT License',
 
-    version='0.4.26',
-    install_requires=['PyYAML', 'steamodd'],
+    version='0.5.0',
+    install_requires=['jinja2', 'PyYAML', 'steamodd', 'xmltodict'],
     platforms=['Windows', 'POSIX'],
 
     entry_points={

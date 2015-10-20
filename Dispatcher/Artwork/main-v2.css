@@ -1,0 +1,56 @@
+html, body {
+    font-family: 'Trebuchet MS', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+table {
+    border: solid 1px #000;
+    border-collapse: collapse;
+    margin: 1.5cm auto;
+    padding: 0;
+    page-break-after: always;
+    width: 20cm;
+}
+tbody {
+    margin: 0;
+    padding: 0;
+}
+tr {
+    margin: 0;
+    padding: 0;
+}
+tr:nth-child(even) {
+    font-style: oblique;
+}
+td {
+    border-bottom: solid 1px #000;
+    margin: 0;
+    padding: 0.2cm;
+}
+td.formation {
+    border-left: solid 1px #000;
+}
+td.remarks {
+    padding-bottom: 3cm;
+}
+td.service {
+    background: #8a8a8a;
+}
+h2 {
+    color: #fff;
+    font-size: 1cm;
+    margin: 0;
+    padding: 0.2cm;
+    text-align: center;
+}
+.coaches {
+    border: dashed 0.1cm #000;
+    font-size: 1cm;
+    font-weight: bold;
+    float: right;
+    padding: 0.2cm;
+}
+.right {
+    text-align: right;
+}

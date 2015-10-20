@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="file://{{ artwork_folder }}/main-v2.css"/>
+    <title>Your work order</title>
+</head>
+<body>
+
+{% for order in orders %}
+    <table>
+        <tbody>
+            <tr>
+                <td>Shift <b>{{ order.route.uuids.0[0:3] }}/{{ order.route.uuids.1[0:3] }}</b>/{{ order.uuids.0[0:3] }}/{{ order.uuids.1[0:3] }}</td>
+                <td colspan="3" class="right"><b>{{ order.name }}</b></td>
+            </tr>
+            <tr>
+                <td colspan="4" class="service"><h2>{{ order.service_name }}</h2></td>
+            </tr>
+
+            {% for instruction in order.driver_instructions %}
+                <tr>
+                    <td>
+                        {{ instruction.location }}
+
+                        {% if instruction.extra %}
+                            <br><br>
+                            {{ instruction.extra }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if instruction.arrival and instruction.stopping %}
+                            {{ instruction.arrival.strftime('%H:%M') }}
+                        {% else %}
+                            pass
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if instruction.departure %}
+                            {{ instruction.departure.strftime('%H:%M') }}
+                        {% else %}
+                            pass
+                        {% endif %}
+                    </td>
+                    {% if loop.first %}
+                        <td class="formation" rowspan="{{ loop.length }}">
+                            {% if order.formation %}
+                                <span class="coaches">{{ order.formation|length }}</span>
+                                <b>Formation:</b>
+                                <br><br>
+                                {% for carriage in order.formation %}
+                                    {{ carriage }}<br>
+                                {% endfor %}
+                                <br>
+                                {% if order.vmax %}
+                                    <b>Vmax:</b> {{ order.vmax }} mph
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+
+            <tr>
+                <td colspan="4">
+                    <p>{{ order.description }}</p>
+                    <p>{{ order.briefing }}</p>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4" class="remarks">
+                    <b>Remarks:</b>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4" class="right">
+                    {{ order.start_datetime.strftime('%d.%m.%Y') }} at {{ order.start_location }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!--
+
+    Route: {{ order.debug_filenames.0 }}
+    Scenario basic: {{ order.debug_filenames.1 }}
+    Scenario detailed: {{ order.debug_filenames.2 }}
+
+    -->
+{% endfor %}
+
+</body>
+</html>

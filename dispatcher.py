@@ -1,21 +1,22 @@
 #!/usr/bin/env python
-
 # coding: utf-8
 
 import argparse
 import datetime
-import getpass
 import glob
 import itertools
+import json
 import logging
 import os
 import random
 import re
 import steam
-import string
+import subprocess
 import sys
-from xml.etree import ElementTree
+import urllib.error
 
+import jinja2
+import xmltodict
 import yaml
 
 
@@ -32,23 +33,6 @@ IGNORED_SCENARIO_CLASSES = (
 )
 LOW_TOLERANCE = 15
 STEAM_API_KEY = 'E0668EFB2DCED5DAAEFDAEA751B029DD'
-TEMPLATE_BOILERPLATE = """<!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Railworks Dispatcher Work Order #${shift_number}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="file://${dispatcher_artwork_folder}/main.css">
-    </head>
-    <body>
-        ${orders}
-        <script type="application/javascript" src="file://${dispatcher_artwork_folder}/build.js"></script>
-    </body>
-</html>"""
 TEMPLATE_CONFIG = """
 # Automatically created by Railworks Dispatcher
 # See https://github.com/centralniak/railworks-dispatcher
@@ -58,21 +42,237 @@ steam:
   profile: ~
   hours_two_weeks: 14
 """
-TEMPLATE_WORK_ORDER = """
-    <article class="${scenario_class}">
-        <div class="collapsible">
-            <img class="logo" src="file://${dispatcher_artwork_folder}/Logos/${logo}" alt="">
-            <div>Driver ${username}</div>
-            <div class="larger">Shift ${shift_number}</div>
-        </div>
-        <h1>${scenario_name}</h1>
-        <div class="collapsible">
-            <div class="larger">${scenario_description}</div>
-            <div class="with-margin">${scenario_briefing}</div>
-            <div class="with-margin">Printed ${date} at ${scenario_start_location}</div>
-        </div>
-    </article>
-"""
+
+
+class DriverInstruction(object):
+
+    data = None
+    start_datetime = None
+
+    def __init__(self, data, start_datetime):
+        self.data = data
+        self.start_datetime = start_datetime
+
+    @property
+    def arrival(self):
+        duration = int(float(self.data['Duration']['#text']))
+        seconds_after_start = float(self.data['DueTime']['#text'])
+        if not seconds_after_start or not duration:
+            return
+        arrival = self.start_datetime + datetime.timedelta(seconds=seconds_after_start - duration)
+        return arrival
+
+    @property
+    def departure(self):
+        seconds_after_start = float(self.data['DueTime']['#text'])
+        if not seconds_after_start:
+            return
+        return self.start_datetime + datetime.timedelta(seconds=seconds_after_start)
+
+    @property
+    def extra(self):
+        operation = self.data['Operation']['#text'].lower()
+        if operation != 'Default':
+            return getattr(self, 'operation_' + operation)
+
+    @property
+    def location(self):
+        try:
+            return self.data['DisplayName']['#text']
+        except TypeError:
+            logging.debug('Unable to fetch driver instruction location')
+            logging.debug(json.dumps(self.data, indent=4))
+            return ''
+
+    @property
+    def operation_addtoback(self):
+        cars = self.data['RailVehicleNumber']['e']
+        if not isinstance(cars, list):
+            cars = [cars]
+        return 'Attach {0}'.format(', '.join([c['#text'] for c in cars]))
+
+    @property
+    def operation_dropoffrailvehicle(self):
+        cars = self.data['RailVehicleNumber']['e']
+        if not isinstance(cars, list):
+            cars = [cars]
+        return 'Detach {0}'.format(', '.join([c['#text'] for c in cars]))
+
+    @property
+    def stopping(self):
+        try:
+            return (
+                self.data['PickingUp']['#text'] == '1' and
+                self.data['Waypoint']['#text'] == '0') \
+                and self.data['MinSpeed']['#text'] == '0'
+        except KeyError:
+            return False
+
+
+class Route(object):
+
+    data = None
+
+    def __init__(self, xml):
+        self.data = xmltodict.parse(open(xml, encoding='utf-8').read())['cRouteProperties']
+
+    @property
+    def name(self):
+        return self.data['DisplayName']['Localisation-cUserLocalisedString']['English']['#text']
+
+    @property
+    def uuids(self):
+        return [
+            e['#text'] for e in self.data['ID']['cGUID']['UUID']['e']
+        ]
+
+
+class Scenario(object):
+
+    basic_data = None
+    detailed_data = None
+    route_xml = None
+
+    debug_filenames = None
+
+    def __init__(self, xml_basic, xml_detailed, xml_route):
+        self.basic_data = xmltodict.parse(open(xml_basic, encoding='utf-8').read())['cScenarioProperties']
+        self.detailed_data = xmltodict.parse(open(xml_detailed, encoding='utf-8').read())['cRecordSet']['Record']
+        self.route_xml = xml_route
+        self.debug_filenames = [xml_route, xml_basic, xml_detailed]
+
+    @property
+    def briefing(self):
+        try:
+            briefing = self.basic_data['Briefing']['Localisation-cUserLocalisedString']['English']['#text']
+            if briefing == self.description:
+                return ''
+            return briefing
+        except KeyError:
+            return ''
+
+    @property
+    def description(self):
+        try:
+            return self.basic_data['Description']['Localisation-cUserLocalisedString']['English']['#text']
+        except KeyError:
+            return ''
+
+    @property
+    def driver_instructions(self):
+        if self.player_service is None:
+            return []
+
+        all_instructions = self.player_service['Driver']['cDriver']['DriverInstructionContainer']['cDriverInstructionContainer']['DriverInstruction']
+        return_instructions = []
+        for instruction_type in all_instructions:
+            if instruction_type in ['cTriggerInstruction']:
+                continue
+            current_instruction_type = all_instructions[instruction_type]
+
+            # handle case when only one element of given type is provided
+            # (xmltodict does not return treat this as a list then)
+            if not isinstance(current_instruction_type, list):
+                current_instruction_type = [current_instruction_type]
+
+            # @TODO: actually, per each type there might be multiple - rewrite!
+            for instructions in current_instruction_type:
+                instructions = instructions['DeltaTarget']['cDriverInstructionTarget']
+                if not isinstance(instructions, list):
+                    instructions = [instructions]
+
+                for instruction in instructions:
+                    instruction = DriverInstruction(instruction, self.start_datetime)
+                    if instruction.location and (instruction.arrival or instruction.departure):
+                        return_instructions.append(instruction)
+
+        return sorted(return_instructions, key=lambda i: i.departure)
+
+    @property
+    def duration(self):
+        try:
+            return int(self.basic_data['DurationMins']['#text'])
+        except (TypeError, IndexError):
+            return 0
+
+    @property
+    def formation(self):
+        # for some reason this is usually flipped
+        initial_rv = self.player_service['Driver']['cDriver']['InitialRV']['e']
+        if not isinstance(initial_rv, list):
+            initial_rv = [initial_rv]
+        try:
+            return [c['#text'] for c in initial_rv[::-1]]
+        except TypeError:
+            return []
+
+    @property
+    def name(self):
+        try:
+            return self.basic_data['DisplayName']['Localisation-cUserLocalisedString']['English']['#text']
+        except KeyError:
+            return
+
+    @property
+    def player_service(self):
+        for consist in self.detailed_data['cConsist']:
+            try:
+                if consist['Driver']['cDriver']['PlayerDriver']['#text'] == '1':
+                    return consist
+            except (KeyError, TypeError):
+                pass
+        logging.error('Unable to fetch player service', json.dumps(self.detailed_data['cConsist'], indent=4))
+
+    @property
+    def route(self):
+        return Route(self.route_xml)
+
+    @property
+    def service_name(self):
+        try:
+            return self.player_service['Driver']['cDriver']['ServiceName']['Localisation-cUserLocalisedString']['English']['#text']
+        except TypeError:
+            return ''
+
+    @property
+    def scenario_class(self):
+        return self.basic_data['ScenarioClass']['#text']
+
+    @property
+    def start_datetime(self):
+        start_seconds = int(float(self.basic_data['StartTime']['#text']))
+        start_day = int(self.basic_data['StartDD']['#text'])
+        start_month = int(self.basic_data['StartMM']['#text'])
+        start_year = int(self.basic_data['StartYYYY']['#text'])
+
+        if all([start_seconds, start_day, start_month, start_year]):
+            try:
+                start_date = datetime.datetime(start_year, start_month, start_day)
+                start_date += datetime.timedelta(seconds=start_seconds)
+                return start_date
+            except ValueError:
+                pass
+
+    @property
+    def start_location(self):
+        try:
+            return self.basic_data['StartLocation']['Localisation-cUserLocalisedString']['English']['#text']
+        except KeyError:
+            return ''
+
+    @property
+    def uuids(self):
+        return [
+            e['#text'] for e in self.basic_data['ID']['cGUID']['UUID']['e']
+        ]
+
+    @property
+    def vmax(self):
+        try:
+            vmax_kph = int(self.player_service['MaxPermissibleSpeed']['#text'])
+            return round(vmax_kph / 1.609)
+        except (KeyError, ValueError):
+            return
 
 
 def dictget(dikt, key):
@@ -97,23 +297,14 @@ def ensure_config_present(folder):
 
 
 def entry_banner():
-    print("""Welcome to  ⚑ Railworks Dispatcher 0.4
+    print("""Welcome to  Railworks Dispatcher 0.4
     """)
 
 
 def exit_banner():
     print("""
-Right Away Driver ⚑
+Right Away Driver
     """)
-
-
-def humanize_username(username):
-    SPLITTERS = '.-'
-    IGNORED = '0123456789'  # @TODO: remove funny chars from usernames
-    for splitter in SPLITTERS.split():
-        username = ' '.join(username.split(splitter))
-    username = username.capitalize()
-    return username
 
 
 def ensure_folder(path):
@@ -122,20 +313,6 @@ def ensure_folder(path):
         return True
     except OSError:
         return False
-
-
-def get_arwork_for_date(artwork_dict, date):
-    for artwork in artwork_dict:
-        lo, hi = artwork.get('from'), artwork.get('until')
-        if lo:
-            lo_dt = datetime.datetime.combine(lo, datetime.time())
-            if date < lo_dt:
-                continue
-        if hi:
-            hi_dt = datetime.datetime.combine(hi, datetime.time()) + datetime.timedelta(days=1)
-            if date >= hi_dt:
-                continue
-        return artwork['logo']
 
 
 def get_last_number(work_orders_folder):
@@ -184,14 +361,6 @@ def parse_args(args=None):
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--list', action='store_true')
     return parser.parse_args(args)
-
-
-def render_html(context):
-    return string.Template(TEMPLATE_BOILERPLATE).safe_substitute(**context)
-
-
-def render_work_order(context):
-    return string.Template(TEMPLATE_WORK_ORDER).safe_substitute(**context)
 
 
 def to_minutes(time_string):
@@ -256,6 +425,7 @@ def _main():
 
     dispatcher_folder = os.path.abspath(os.path.dirname(__file__))
     dispatcher_data_folder = os.path.join(dispatcher_folder, 'Dispatcher')
+    dispatcher_artwork_folder = os.path.join(dispatcher_data_folder, 'Artwork')
 
     all_scenarios = glob.glob(scenario_folders)
     random.shuffle(all_scenarios)
@@ -277,14 +447,14 @@ def _main():
             steam_hours_planned = steam_config['hours_two_weeks']
 
             assert steam_profile and steam_hours_planned
-			
+
             if isinstance(steam_profile, str) and not steam_profile.isnumeric():
                 steam_profile = get_steam_profile_id(steam_profile)
 
             steam_minutes_played = get_steam_minutes_played(steam_profile)
             steam_minutes_less = steam_hours_planned * 60 - steam_minutes_played
 
-        except (AssertionError, KeyError,) as exc:
+        except Exception as exc:
             logging.warning('Unable to fetch data from steam %s' % exc)
 
         else:
@@ -306,20 +476,10 @@ def _main():
         # if we set min duration to 1 minute, orders with incorrectly set duration of 0 will be left out
         needed_order_duration_span = (max(order_minutes - LOW_TOLERANCE, 1), order_minutes + HIGH_TOLERANCE)
         logging.debug('Required %d minutes. Will generate between %d and %d' % (order_minutes, needed_order_duration_span[0], needed_order_duration_span[1]))
-		
+
     except (TypeError, ValueError):
         needed_order_count = int(args.work_orders)
         logging.debug('Required %d work orders')
-
-    with open(os.path.join(dispatcher_data_folder, 'artwork.yaml')) as f:
-        route_config_yaml = yaml.load(f)
-    default_route_config = route_config_yaml.pop('Default')
-    route_configs = route_config_yaml
-
-    template_context = {
-        'dispatcher_artwork_folder': os.path.join(dispatcher_data_folder, 'Artwork'),
-        'username': humanize_username(getpass.getuser()),
-    }
 
     def should_continue(completed_list, duration):
         if needed_order_count is not None:
@@ -334,8 +494,6 @@ def _main():
 
     while all_scenarios and should_continue(complete_orders, complete_order_duration):
 
-        shift_number = str(get_last_number(work_orders_folder) + len(complete_orders) + 1).zfill(4)
-
         todays_work_order = all_scenarios[-1]
         all_scenarios.pop()
 
@@ -345,67 +503,33 @@ def _main():
         route_description = os.path.join(route_folder, 'RouteProperties.xml')
         if not os.path.exists(route_description):
             continue
-        xml = ElementTree.parse(route_description)
-        route_name = xml.find('./DisplayName/Localisation-cUserLocalisedString/English').text
-        if route_name in IGNORED_ROUTES:
-            continue
 
-        xml = ElementTree.parse(todays_work_order)
-
-        scenario_class = xml.find('./ScenarioClass').text
-        if scenario_class in IGNORED_SCENARIO_CLASSES:
-            continue
+        # check if Scenario.bin was already unpacked to Scenario.xml
+        todays_work_order_details = todays_work_order.replace('ScenarioProperties.xml', 'Scenario.xml')
+        if not os.path.isfile(todays_work_order_details):
+            todays_work_order_bin = todays_work_order_details.replace('.xml', '.bin')
+            subprocess.check_output('.\Serz.exe %s' % todays_work_order_bin.replace(railworks_folder, '').strip(os.sep))
 
         try:
-            scenario_duration = int(xml.find('./DurationMins').text)
-        except TypeError:
+            scenario = Scenario(todays_work_order, todays_work_order_details, route_description)
+        except Exception:
+            continue
+
+        if scenario.route.name in IGNORED_ROUTES:
+            continue
+
+        if scenario.scenario_class in IGNORED_SCENARIO_CLASSES:
             continue
 
         if (needed_order_duration_span is not None and
-            complete_order_duration + scenario_duration > needed_order_duration_span[1]):
+            complete_order_duration + scenario.duration > needed_order_duration_span[1]):
             continue
 
-        scenario_name = xml.find('./DisplayName/Localisation-cUserLocalisedString/English').text
-        scenario_description = xml.find('./Description/Localisation-cUserLocalisedString/English').text
-        scenario_briefing = xml.find('./Briefing/Localisation-cUserLocalisedString/English').text
-
-        if scenario_name is None:
+        if not scenario.name:
             continue
 
-        scenario_start_location = xml.find('./StartLocation/Localisation-cUserLocalisedString/English').text
-        scenario_start_time = xml.find('./StartTime').text.split('.')[0]
-        scenario_start_day = xml.find('./StartDD').text
-        scenario_start_month = xml.find('./StartMM').text
-        scenario_start_year = xml.find('./StartYYYY').text
-
-        time = int_to_time(int(scenario_start_time))
-        time_adjust = random.randrange(15, 45)
-        try:
-            date = datetime.datetime(
-                int(scenario_start_year), int(scenario_start_month), int(scenario_start_day),
-                *time
-            ) - datetime.timedelta(minutes=time_adjust)
-        except ValueError:
-            date = None
-
-        xml = ElementTree.parse(route_description)
-        route_name = xml.find('./DisplayName/Localisation-cUserLocalisedString/English').text
-        route_artwork = route_configs.get(route_name, default_route_config)
-        logo = get_arwork_for_date(route_artwork, date) if date is not None else None
-
-        complete_orders.append({
-            'date': date,
-            'logo': logo,
-            'route_name': route_name,
-            'scenario_start_location': scenario_start_location or 'Depot',
-            'scenario_name': scenario_name,
-            'scenario_description': scenario_description,
-            'scenario_briefing': scenario_briefing,
-            'scenario_class': scenario_class,
-            'shift_number': shift_number,
-        })
-
-        complete_order_duration += int(scenario_duration) + BREAK_LENGTH
+        complete_orders.append(scenario)
+        complete_order_duration += int(scenario.duration) + BREAK_LENGTH
 
     if not complete_orders:
         die('Not able to generate any scenario meeting your requirements. Sorry.')
@@ -414,20 +538,11 @@ def _main():
     if not args.list:
         last_work_order_number = str(get_last_number(work_orders_folder) + len(complete_orders)).zfill(4)
 
-        orders_html = ''
-        for index, order_context in enumerate(complete_orders):
-            order_context.update(template_context)
-
-            # always use first scenario's start date and location as footer (yes this is a feature)
-            if index > 0:
-                order_context.update({
-                    'scenario_start_location': complete_orders[0]['scenario_start_location'],
-                    'date': complete_orders[0]['date']
-                })
-            orders_html += render_work_order(order_context)
-
-        template_context.update({'orders': orders_html, 'shift_number': get_last_number(work_orders_folder) + 1})
-        html = render_html(template_context)
+        template = os.path.join(dispatcher_data_folder, 'Templates', 'disposition.html')
+        html = jinja2.Template(open(template).read()).render(
+            artwork_folder=dispatcher_artwork_folder,
+            orders=complete_orders
+        )
 
         html_name = last_work_order_number + '.html'
         html_path = os.path.join(work_orders_folder, html_name)
@@ -436,13 +551,14 @@ def _main():
 
     # In list mode output scenarios grouped by route name
     else:
-        route_name_getter = lambda order: order['route_name']
+        route_name_getter = lambda order: order.route.name
         sorted_orders = sorted(complete_orders, key=route_name_getter)
         grouped_orders = itertools.groupby(sorted_orders, key=route_name_getter)
         for route, orders in grouped_orders:
             print('\n * %s: \n' % route)
             for order_context in orders:
                 print('   * %s' % order_context['scenario_name'])
+            input('')
 
     exit_banner()
 

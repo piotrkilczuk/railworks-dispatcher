@@ -10,3 +10,6 @@ test/filesystem/railworks/WorkOrders/
 
 dispatcher.log
 dispatcher.yaml
+
+/.idea/
+/venv/
