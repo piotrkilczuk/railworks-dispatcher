@@ -8,9 +8,6 @@ what your work order can look like:
 
 Don't worry! It is created in vector, so it prints nice.
 
-The scenario briefing and description is taken from
-`Armstrong Powerhouse's AP37 Scenario pack <http://www.armstrongpowerhouse.com/index.php?route=product/product&path=29_81&product_id=139>`_.
-
 
 Setup
 -----
@@ -55,11 +52,11 @@ Acknowledgements
 * The created work order uses dot matrix fonts created by
   `Svein Kåre Gunnarson <http://dionaea.com/information/fonts.php>`_.
 
-* The logos of Train Operating Companies are properties of their respective owners.
-
 
 Changelog
 ---------
+
+* **0.5** produces a timetable as well formation information by unpacking binary scenario metadata
 
 * **0.4.27** does not break on missing Steam config in dispatcher.yaml
 
