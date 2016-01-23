@@ -141,6 +141,9 @@ class Scenario(object):
         self.route_xml = xml_route
         self.debug_filenames = [xml_route, xml_basic, xml_detailed]
 
+    def __unicode__(self):
+        return '{}: {}'.format(self.devstring, self.name)
+
     @property
     def briefing(self):
         try:
@@ -406,6 +409,11 @@ def _main():
     A dictionary of route artwork configs, indexed by route name
     """
 
+    ignored_scenarios = None
+    """
+    A list of devstrings of disappointing scenarios that should be avoided
+    """
+
     entry_banner()
 
     args = parse_args(sys.argv[1:])
@@ -421,6 +429,8 @@ def _main():
     configfile = ensure_config_present(railworks_folder)
     config = yaml.load(open(configfile))
     logging.debug('Loaded config: %s' % config)
+
+    ignored_scenarios = config['ignored_scenarios'] or []
 
     scenario_folders = os.path.join(railworks_folder,
                                     'Content', 'Routes', '*', 'Scenarios', '*', 'ScenarioProperties.xml')
@@ -523,6 +533,10 @@ def _main():
             continue
 
         if scenario.scenario_class in IGNORED_SCENARIO_CLASSES:
+            continue
+
+        if scenario.devstring in ignored_scenarios:
+            logging.debug('Skipping scenario {} because scenario ignored'.format(scenario))
             continue
 
         if (needed_order_duration_span is not None and
