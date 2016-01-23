@@ -159,6 +159,10 @@ class Scenario(object):
             return ''
 
     @property
+    def devstring(self):
+        return self.basic_data['ID']['cGUID']['DevString']['#text']
+
+    @property
     def driver_instructions(self):
         if self.player_service is None:
             return []
