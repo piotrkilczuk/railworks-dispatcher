@@ -13,7 +13,6 @@ import re
 import steam
 import subprocess
 import sys
-import urllib.error
 
 import jinja2
 import xmltodict
@@ -238,7 +237,7 @@ class Scenario(object):
     def service_name(self):
         try:
             return self.player_service['Driver']['cDriver']['ServiceName']['Localisation-cUserLocalisedString']['English']['#text']
-        except TypeError:
+        except (KeyError, TypeError):
             return ''
 
     @property
