@@ -56,7 +56,7 @@ class DriverInstruction(object):
     def arrival(self):
         duration = int(float(self.data['Duration']['#text']))
         seconds_after_start = float(self.data['DueTime']['#text'])
-        if not seconds_after_start or not duration:
+        if not seconds_after_start or not duration or not self.start_datetime:
             return
         arrival = self.start_datetime + datetime.timedelta(seconds=seconds_after_start - duration)
         return arrival
