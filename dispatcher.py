@@ -31,7 +31,7 @@ IGNORED_SCENARIO_CLASSES = (
     'eTutorialScenarioClass',
 )
 LOW_TOLERANCE = 15
-STEAM_API_KEY = 'E0668EFB2DCED5DAAEFDAEA751B029DD'
+STEAM_API_KEY = ''
 TEMPLATE_CONFIG = """
 # Automatically created by Railworks Dispatcher
 # See https://github.com/centralniak/railworks-dispatcher
